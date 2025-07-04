@@ -1,5 +1,5 @@
 import requests
-from config import ACCESS_TOKEN
+from backend.config.config import ACCESS_TOKEN
 
 headers = {
     "Authorization": f"Bearer {ACCESS_TOKEN}"

@@ -1,23 +1,30 @@
 from fastapi import FastAPI, Depends, HTTPException, UploadFile, File, Form
 from sqlalchemy.orm import Session
-from CRUD import crud
-from config import auth
-from database import models, schemas
-from database.database import engine
-from config.auth import get_current_user, create_access_token
-from services.upload_image_and_post import publish_post_to_linkedin
+from backend.CRUD import crud
+from backend.config import auth
+from backend.database import models, schemas
+from backend.database.database import engine
+from backend.config.auth import get_current_user, create_access_token
+from backend.services.upload_image_and_post import publish_post_to_linkedin
 from fastapi.responses import HTMLResponse
+from fastapi.templating import Jinja2Templates
+from fastapi import Request
 import shutil
 import os
 import uuid
-
+templates = Jinja2Templates(directory="templates")
 models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 
 @app.get("/", response_class=HTMLResponse)
-def read_root():
-    return {"message": "test"}
+def homepage(request: Request):
+    return templates.TemplateResponse("index.html", {"request": request})
+
+
+@app.get("/form", response_class=HTMLResponse)
+def form_page(request: Request):
+    return templates.TemplateResponse("form.html", {"request": request})
 
 @app.post("/register", response_model=schemas.User)
 def register(user: schemas.UserCreate, db: Session = Depends(auth.get_db)):

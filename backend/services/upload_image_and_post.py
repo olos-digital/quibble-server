@@ -1,5 +1,5 @@
 import requests, mimetypes
-from config import ACCESS_TOKEN, AUTHOR_URN
+from backend.config.config import (ACCESS_TOKEN, AUTHOR_URN)
 
 def publish_post_to_linkedin(text: str, image_path: str):
     headers = {
