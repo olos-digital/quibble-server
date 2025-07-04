@@ -1,2 +1,68 @@
-.venv
-.idea
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
+.venv/
+venv/
+ENV/
+env/
+
+# VS Code settings
+.vscode/
+
+# PyCharm settings
+.idea/
+
+# Local DB
+*.sqlite3
+*.db
+
+# Logs
+*.log
+
+# Environment variables
+.env
+.env.*
+
+# Python egg info
+*.egg-info/
+dist/
+build/
+
+# Testing
+.pytest_cache/
+.tox/
+.coverage
+htmlcov/
+nosetests.xml
+coverage.xml
+*.cover
+
+# Jupyter Notebooks
+.ipynb_checkpoints
+
+# MacOS
+.DS_Store
+
+# Windows
+Thumbs.db
+ehthumbs.db
+desktop.ini
+
+# MyPy
+.mypy_cache/
+
+# Pyre type checker
+.pyre/
+
+# Pydantic schema cache
+__pydantic__/ 
+
+# Other IDEs
+*.sublime-project
+*.sublime-workspace
+
+# Bandit security scans
+bandit.yaml

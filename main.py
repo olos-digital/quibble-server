@@ -1,9 +1,11 @@
-from fastapi import FastAPI, Depends, HTTPException, status, UploadFile, File, Form
+from fastapi import FastAPI, Depends, HTTPException, UploadFile, File, Form
 from sqlalchemy.orm import Session
-import models, schemas, crud, auth
-from database import engine
-from auth import get_current_user, create_access_token
-from upload_image_and_post import publish_post_to_linkedin
+from CRUD import crud
+from config import auth
+from database import models, schemas
+from database.database import engine
+from config.auth import get_current_user, create_access_token
+from services.upload_image_and_post import publish_post_to_linkedin
 from fastapi.responses import HTMLResponse
 import shutil
 import os

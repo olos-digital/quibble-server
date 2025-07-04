@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
-from models import User, Post
-from auth import get_password_hash, verify_password
+from database.models import User, Post
+from config.config import get_password_hash, verify_password
 
 def create_user(db: Session, username: str, password: str):
     user = User(username=username, hashed_password=get_password_hash(password))

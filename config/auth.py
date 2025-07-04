@@ -3,8 +3,8 @@ from fastapi.security import OAuth2PasswordBearer
 from jose import jwt, JWTError
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
-from database import SessionLocal
-import crud
+from database.database import SessionLocal
+from CRUD import crud
 
 SECRET_KEY = "secret123"
 ALGORITHM = "HS256"
