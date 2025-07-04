@@ -1,8 +1,8 @@
 'use client'
 import { useForm, SubmitHandler } from 'react-hook-form'
 import { useRouter } from 'next/navigation'
-import AuthCard from '@/components/AuthCard'
-import { Input } from '@/components/Input'
+import AuthCard from '@/components/Auth/AuthCard'
+import { Input } from '@/components/Auth/Input'
 import { register as registerApi, login as loginApi } from '@/lib/api'
 
 interface FormData {

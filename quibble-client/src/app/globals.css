@@ -1,7 +1,5 @@
 @import "tailwindcss";
 
-@tailwind base;
-@tailwind components;
 @tailwind utilities;
 html,body{height:100%}
 
@@ -16,6 +14,7 @@ html,body{height:100%}
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --font-rollbox: var(--font-rollbox);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -23,10 +22,4 @@ html,body{height:100%}
     --background: #0a0a0a;
     --foreground: #ededed;
   }
-}
-
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
 }

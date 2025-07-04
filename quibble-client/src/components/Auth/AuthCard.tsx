@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import type { ReactNode } from 'react';
 
 export default function AuthCard({ children, title }: { children: ReactNode; title: string }) {
   return (

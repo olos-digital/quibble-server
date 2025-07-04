@@ -1,6 +1,6 @@
 'use client'
-import { forwardRef } from 'react'
-import { FieldError } from 'react-hook-form'
+import { forwardRef } from 'react';
+import { FieldError } from 'react-hook-form';
 
 interface Props extends React.InputHTMLAttributes<HTMLInputElement> {
   label: string
