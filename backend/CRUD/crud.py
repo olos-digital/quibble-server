@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
-from backend.database.models import User, Post
-from backend.config.auth import get_password_hash, verify_password
-from backend.database.schemas import UserUpdate
+from database.models import User, Post
+from config.auth import get_password_hash, verify_password
+from database.schemas import UserUpdate
 
 def update_user(db: Session, user: User, updates: UserUpdate):
     if updates.username:

@@ -1,5 +1,4 @@
 from pydantic import BaseModel
-from pydantic import BaseModel
 from typing import Optional
 
 class UserUpdate(BaseModel):
@@ -16,7 +15,7 @@ class PostCreate(PostBase):
 class Post(PostBase):
     id: int
     class Config:
-        orm_mode = True
+        from_attributes = True  # ✅ Pydantic v2
 
 class UserCreate(BaseModel):
     username: str
@@ -26,7 +25,7 @@ class User(BaseModel):
     id: int
     username: str
     class Config:
-        orm_mode = True
+        from_attributes = True  # ✅ Pydantic v2
 
 class Token(BaseModel):
     access_token: str

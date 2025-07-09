@@ -1,33 +1,27 @@
 from fastapi import FastAPI, Depends, HTTPException, UploadFile, File, Form
 from sqlalchemy.orm import Session
-from backend.CRUD import crud
-from backend.config import auth
-from backend.database import models, schemas
-from backend.database.database import engine
-from backend.config.auth import get_current_user, create_access_token
-from backend.services.upload_image_and_post import publish_post_to_linkedin
-from fastapi.responses import HTMLResponse
-from fastapi.templating import Jinja2Templates
-from fastapi import Request
+from CRUD import crud
+from config import auth
+from database import models, schemas
+from database.database import engine
+from config.auth import get_current_user, create_access_token
+from services.upload_image_and_post import publish_post_to_linkedin
 from fastapi.staticfiles import StaticFiles
 import shutil
 import os
 import uuid
-templates = Jinja2Templates(directory="templates")
+
 models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 
+import os
+
+os.makedirs("uploads", exist_ok=True)
+
 app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
-@app.get("/", response_class=HTMLResponse)
-def homepage(request: Request):
-    return templates.TemplateResponse("index.html", {"request": request})
-
-
-@app.get("/form", response_class=HTMLResponse)
-def form_page(request: Request):
-    return templates.TemplateResponse("form.html", {"request": request})
+app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
 @app.post("/register", response_model=schemas.User)
 def register(user: schemas.UserCreate, db: Session = Depends(auth.get_db)):
@@ -48,6 +42,21 @@ def login(user: schemas.UserCreate, db: Session = Depends(auth.get_db)):
 def read_users_me(current_user: models.User = Depends(get_current_user)):
     return current_user
 
+@app.put("/users/me", response_model=schemas.User)
+def update_user_me(
+    user_update: schemas.UserUpdate,
+    db: Session = Depends(auth.get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    return crud.update_user(db, current_user, user_update)
+
+@app.get("/users/me/posts", response_model=list[schemas.Post])
+def get_my_posts(
+    db: Session = Depends(auth.get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    return crud.get_user_posts(db, current_user)
+
 @app.post("/posts", response_model=schemas.Post)
 def create_post(
     post: schemas.PostCreate,
@@ -60,6 +69,13 @@ def create_post(
 def list_posts(db: Session = Depends(auth.get_db)):
     return crud.get_posts(db)
 
+@app.get("/posts/{post_id}", response_model=schemas.Post)
+def get_post_by_id(post_id: int, db: Session = Depends(auth.get_db)):
+    post = crud.get_post(db, post_id)
+    if not post:
+        raise HTTPException(status_code=404, detail="Post not found")
+    return post
+
 @app.delete("/posts/{post_id}")
 def delete_post(
     post_id: int,
@@ -70,6 +86,26 @@ def delete_post(
     if not success:
         raise HTTPException(status_code=403, detail="Not allowed or post not found")
     return {"message": "Deleted"}
+
+@app.post("/posts/{post_id}/image", response_model=schemas.Post)
+def upload_post_image(
+    post_id: int,
+    image: UploadFile = File(...),
+    db: Session = Depends(auth.get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    os.makedirs("uploads", exist_ok=True)
+    filename = f"{uuid.uuid4().hex}_{image.filename}"
+    filepath = os.path.join("uploads", filename)
+
+    with open(filepath, "wb") as buffer:
+        shutil.copyfileobj(image.file, buffer)
+
+    image_url = f"/uploads/{filename}"
+    post = crud.update_post_image(db, current_user, post_id, image_url)
+    if not post:
+        raise HTTPException(status_code=403, detail="Not allowed or post not found")
+    return post
 
 @app.post("/linkedin_post")
 def linkedin_post(
@@ -91,45 +127,3 @@ def linkedin_post(
             os.remove(filepath)
 
     return {"message": "Пост опубликован в LinkedIn"}
-
-@app.put("/users/me", response_model=schemas.User)
-def update_user_me(
-    user_update: schemas.UserUpdate,
-    db: Session = Depends(auth.get_db),
-    current_user: models.User = Depends(get_current_user)
-):
-    return crud.update_user(db, current_user, user_update)
-
-@app.get("/posts/{post_id}", response_model=schemas.Post)
-def get_post_by_id(post_id: int, db: Session = Depends(auth.get_db)):
-    post = crud.get_post(db, post_id)
-    if not post:
-        raise HTTPException(status_code=404, detail="Post not found")
-    return post
-
-@app.get("/users/me/posts", response_model=list[schemas.Post])
-def get_my_posts(
-    db: Session = Depends(auth.get_db),
-    current_user: models.User = Depends(get_current_user)
-):
-    return crud.get_user_posts(db, current_user)
-
-@app.post("/posts/{post_id}/image", response_model=schemas.Post)
-def upload_post_image(
-    post_id: int,
-    image: UploadFile = File(...),
-    db: Session = Depends(auth.get_db),
-    current_user: models.User = Depends(get_current_user)
-):
-    os.makedirs("uploads", exist_ok=True)
-    filename = f"{uuid.uuid4().hex}_{image.filename}"
-    filepath = os.path.join("uploads", filename)
-
-    with open(filepath, "wb") as buffer:
-        shutil.copyfileobj(image.file, buffer)
-
-    image_url = f"/uploads/{filename}"  # Если отдаёшь через StaticFiles
-    post = crud.update_post_image(db, current_user, post_id, image_url)
-    if not post:
-        raise HTTPException(status_code=403, detail="Not allowed or post not found")
-    return post
