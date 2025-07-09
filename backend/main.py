@@ -9,6 +9,7 @@ from backend.services.upload_image_and_post import publish_post_to_linkedin
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from fastapi import Request
+from fastapi.staticfiles import StaticFiles
 import shutil
 import os
 import uuid
@@ -16,6 +17,8 @@ templates = Jinja2Templates(directory="templates")
 models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
+
+app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
 @app.get("/", response_class=HTMLResponse)
 def homepage(request: Request):
@@ -88,3 +91,45 @@ def linkedin_post(
             os.remove(filepath)
 
     return {"message": "Пост опубликован в LinkedIn"}
+
+@app.put("/users/me", response_model=schemas.User)
+def update_user_me(
+    user_update: schemas.UserUpdate,
+    db: Session = Depends(auth.get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    return crud.update_user(db, current_user, user_update)
+
+@app.get("/posts/{post_id}", response_model=schemas.Post)
+def get_post_by_id(post_id: int, db: Session = Depends(auth.get_db)):
+    post = crud.get_post(db, post_id)
+    if not post:
+        raise HTTPException(status_code=404, detail="Post not found")
+    return post
+
+@app.get("/users/me/posts", response_model=list[schemas.Post])
+def get_my_posts(
+    db: Session = Depends(auth.get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    return crud.get_user_posts(db, current_user)
+
+@app.post("/posts/{post_id}/image", response_model=schemas.Post)
+def upload_post_image(
+    post_id: int,
+    image: UploadFile = File(...),
+    db: Session = Depends(auth.get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    os.makedirs("uploads", exist_ok=True)
+    filename = f"{uuid.uuid4().hex}_{image.filename}"
+    filepath = os.path.join("uploads", filename)
+
+    with open(filepath, "wb") as buffer:
+        shutil.copyfileobj(image.file, buffer)
+
+    image_url = f"/uploads/{filename}"  # Если отдаёшь через StaticFiles
+    post = crud.update_post_image(db, current_user, post_id, image_url)
+    if not post:
+        raise HTTPException(status_code=403, detail="Not allowed or post not found")
+    return post

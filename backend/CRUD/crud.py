@@ -1,6 +1,16 @@
 from sqlalchemy.orm import Session
 from backend.database.models import User, Post
 from backend.config.auth import get_password_hash, verify_password
+from backend.database.schemas import UserUpdate
+
+def update_user(db: Session, user: User, updates: UserUpdate):
+    if updates.username:
+        user.username = updates.username
+    if updates.password:
+        user.hashed_password = get_password_hash(updates.password)
+    db.commit()
+    db.refresh(user)
+    return user
 
 def create_user(db: Session, username: str, password: str):
     user = User(username=username, hashed_password=get_password_hash(password))
@@ -38,3 +48,18 @@ def delete_post(db: Session, user: User, post_id: int):
         db.commit()
         return True
     return False
+
+def get_post(db: Session, post_id: int):
+    return db.query(Post).filter(Post.id == post_id).first()
+
+def get_user_posts(db: Session, user: User):
+    return db.query(Post).filter(Post.owner_id == user.id).all()
+
+def update_post_image(db: Session, user: User, post_id: int, image_url: str):
+    post = db.query(Post).filter(Post.id == post_id, Post.owner_id == user.id).first()
+    if not post:
+        return None
+    post.image_url = image_url
+    db.commit()
+    db.refresh(post)
+    return post
