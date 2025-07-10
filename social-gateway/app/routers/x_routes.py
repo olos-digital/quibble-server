@@ -2,6 +2,7 @@ from fastapi import APIRouter, UploadFile, File, Form, HTTPException
 from ..services.x_api import XApiService
 import tempfile
 import shutil
+import os
 
 router = APIRouter(prefix="/x", tags=["X (Twitter)"])
 x_service = XApiService()
