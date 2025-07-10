@@ -2,3 +2,5 @@ fastapi
 uvicorn
 tweepy
 python-dotenv
+requests
+httpx
