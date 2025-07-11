@@ -8,18 +8,13 @@ from config.auth import get_current_user, create_access_token
 from services.upload_image_and_post import publish_post_to_linkedin
 from fastapi.staticfiles import StaticFiles
 import shutil
-import os
 import uuid
+import os
 
 models.Base.metadata.create_all(bind=engine)
-
 app = FastAPI()
 
-import os
-
 os.makedirs("uploads", exist_ok=True)
-
-app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
 app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
