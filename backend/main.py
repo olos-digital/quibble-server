@@ -10,6 +10,8 @@ from fastapi.staticfiles import StaticFiles
 import shutil
 import uuid
 import os
+from typing import Optional
+from fastapi import Query
 
 models.Base.metadata.create_all(bind=engine)
 app = FastAPI()
@@ -52,17 +54,14 @@ def get_my_posts(
 ):
     return crud.get_user_posts(db, current_user)
 
-@app.post("/posts", response_model=schemas.Post)
-def create_post(
-    post: schemas.PostCreate,
-    db: Session = Depends(auth.get_db),
-    current_user: models.User = Depends(get_current_user)
-):
-    return crud.create_post(db, current_user, post.title, post.content)
-
 @app.get("/posts", response_model=list[schemas.Post])
-def list_posts(db: Session = Depends(auth.get_db)):
-    return crud.get_posts(db)
+def list_posts(
+    db: Session = Depends(auth.get_db),
+    category: Optional[str] = Query(None, description="Filter by category"),
+    sort_by: Optional[str] = Query("likes", description="Sorting: 'likes' or 'newest'")
+):
+    return crud.get_posts(db, category=category, sort_by=sort_by)
+
 
 @app.get("/posts/{post_id}", response_model=schemas.Post)
 def get_post_by_id(post_id: int, db: Session = Depends(auth.get_db)):
@@ -106,7 +105,6 @@ def upload_post_image(
 def linkedin_post(
     text: str = Form(...),
     image: UploadFile = File(...),
-    current_user: models.User = Depends(get_current_user)
 ):
     os.makedirs("temp_uploads", exist_ok=True)
     filename = f"temp_{uuid.uuid4().hex}_{image.filename}"

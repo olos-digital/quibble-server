@@ -2,6 +2,7 @@ from sqlalchemy import Column, Integer, String, ForeignKey
 from sqlalchemy.orm import relationship
 from database.database import Base
 
+category = Column(String, nullable=True)
 class User(Base):
     __tablename__ = "users"
     id = Column(Integer, primary_key=True, index=True)

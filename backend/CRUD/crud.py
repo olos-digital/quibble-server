@@ -35,8 +35,18 @@ def create_post(db: Session, user: User, title: str, content: str):
     db.refresh(post)
     return post
 
-def get_posts(db: Session):
-    return db.query(Post).all()
+def get_posts(db: Session, category: Optional[str] = None, sort_by: str = "likes"):
+    query = db.query(models.Post)
+
+    if category:
+        query = query.filter(models.Post.category == category)
+
+    if sort_by == "likes":
+        query = query.order_by(models.Post.likes.desc())
+    elif sort_by == "newest":
+        query = query.order_by(models.Post.created_at.desc())
+
+    return query.all()
 
 def get_post(db: Session, post_id: int):
     return db.query(Post).filter(Post.id == post_id).first()

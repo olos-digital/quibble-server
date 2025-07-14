@@ -30,3 +30,8 @@ class User(BaseModel):
 class Token(BaseModel):
     access_token: str
     token_type: str
+
+class PostCreate(BaseModel):
+    title: str
+    content: str
+    category: Optional[str] = None
