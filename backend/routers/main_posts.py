@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from database import user_schemas, post_schemas
 from models import user, post, base
 from config import auth
-from CRUD import crud
+from CRUD import crud_auth, crud_posts, crud_user
 import uuid
 import os
 import shutil
@@ -18,11 +18,11 @@ def list_posts(
     category: Optional[str] = Query(None, description="Filter by category"),
     sort_by: Optional[str] = Query("likes", description="Sorting: 'likes' or 'newest'")
 ):
-    return crud.get_posts(db, category=category, sort_by=sort_by)
+    return crud_posts.get_posts(db, category=category, sort_by=sort_by)
 
 @router.get("/{post_id}", response_model=post_schemas.Post)
 def get_post_by_id(post_id: int, db: Session = Depends(auth.get_db)):
-    post = crud.get_post(db, post_id)
+    post = crud_posts.get_post(db, post_id)
     if not post:
         raise HTTPException(status_code=404, detail="Post not found")
     return post
@@ -33,7 +33,7 @@ def delete_post(
     db: Session = Depends(auth.get_db),
     current_user: user.User = Depends(auth.get_current_user)
 ):
-    success = crud.delete_post(db, current_user, post_id)
+    success = crud_posts.delete_post(db, current_user, post_id)
     if not success:
         raise HTTPException(status_code=403, detail="Not allowed or post not found")
     return {"message": "Deleted"}
@@ -53,7 +53,7 @@ def upload_post_image(
         shutil.copyfileobj(image.file, buffer)
 
     image_url = f"/uploads/{filename}"
-    post = crud.update_post_image(db, current_user, post_id, image_url)
+    post = crud_posts.update_post_image(db, current_user, post_id, image_url)
     if not post:
         raise HTTPException(status_code=403, detail="Not allowed or post not found")
     return post
@@ -63,4 +63,4 @@ def get_my_posts(
     db: Session = Depends(auth.get_db),
     current_user: user.User = Depends(auth.get_current_user)
 ):
-    return crud.get_user_posts(db, current_user)
+    return crud_posts.get_user_posts(db, current_user)

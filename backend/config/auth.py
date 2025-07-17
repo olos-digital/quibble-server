@@ -4,7 +4,7 @@ from jose import jwt, JWTError
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 from database.database import SessionLocal
-from CRUD import crud
+from CRUD import crud_auth, crud_posts, crud_user
 import os
 from dotenv import load_dotenv
 
@@ -38,7 +38,7 @@ class AuthService:
         except JWTError:
             raise HTTPException(status_code=401, detail="Invalid token")
 
-        user = crud.get_user_by_username(db, username)
+        user = crud_user.get_user_by_username(db, username)
         if user is None:
             raise HTTPException(status_code=404, detail="User not found")
         return user

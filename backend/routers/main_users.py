@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from database import user_schemas, post_schemas
 from models import user, post, base
 from config import auth
-from CRUD import crud
+from CRUD import crud_auth, crud_posts, crud_user
 
 router = APIRouter()
 
@@ -17,4 +17,4 @@ def update_user_me(
     db: Session = Depends(auth.get_db),
     current_user: user.User = Depends(auth.get_current_user)
 ):
-    return crud.update_user(db, current_user, user_update)
+    return crud_user.update_user(db, current_user, user_update)

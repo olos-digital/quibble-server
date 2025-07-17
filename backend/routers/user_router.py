@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from backend.database.database import get_db
-from backend.CRUD import crud
+from CRUD import crud_auth, crud_posts, crud_user
 from backend.auth import get_current_user, get_password_hash
 from backend.schemas.user_schemas import UserCreate, UserUpdate, UserOut
 
@@ -10,11 +10,11 @@ router = APIRouter()
 
 @router.post("/register", response_model=UserOut)
 def register(user: UserCreate, db: Session = Depends(get_db)):
-    db_user = crud.get_user_by_username(db, user.username)
+    db_user = crud_user.get_user_by_username(db, user.username)
     if db_user:
         raise HTTPException(status_code=400, detail="Username already registered")
     hashed_pw = get_password_hash(user.password)
-    new_user = crud.create_user(db, user.username, hashed_pw)
+    new_user = crud_user.create_user(db, user.username, hashed_pw)
     return new_user
 
 
