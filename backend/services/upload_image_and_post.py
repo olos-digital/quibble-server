@@ -53,11 +53,11 @@ def publish_post_to_linkedin(text: str, image_path: str):
                     {
                         "status": "READY",
                         "description": {
-                            "text": "Описание изображения"
+                            "text": "image description"
                         },
                         "media": asset,
                         "title": {
-                            "text": "Заголовок изображения"
+                            "text": "image title"
                         }
                     }
                 ]
@@ -74,5 +74,5 @@ def publish_post_to_linkedin(text: str, image_path: str):
         json=post_payload
     )
 
-    print("Статус:", post_resp.status_code)
-    print("Ответ:", post_resp.json())
+    print("Status:", post_resp.status_code)
+    print("Answer:", post_resp.json())

@@ -67,3 +67,5 @@ __pydantic__/
 
 # Bandit security scans
 bandit.yaml
+
+temp

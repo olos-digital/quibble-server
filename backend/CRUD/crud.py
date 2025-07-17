@@ -1,75 +1,87 @@
+from typing import Optional
 from sqlalchemy.orm import Session
-from database.models import User, Post
-from config.auth import get_password_hash, verify_password
-from database.schemas import UserUpdate
+from models.user import User
+from models.post import Post
+from config.auth import auth_service
+from database.user_schemas import UserUpdate
 
-def update_user(db: Session, user: User, updates: UserUpdate):
-    if updates.username:
-        user.username = updates.username
-    if updates.password:
-        user.hashed_password = get_password_hash(updates.password)
-    db.commit()
-    db.refresh(user)
-    return user
 
-def create_user(db: Session, username: str, password: str):
-    user = User(username=username, hashed_password=get_password_hash(password))
-    db.add(user)
-    db.commit()
-    db.refresh(user)
-    return user
+class UserService:
+    def __init__(self, db: Session):
+        self.db = db
 
-def get_user_by_username(db: Session, username: str):
-    return db.query(User).filter(User.username == username).first()
+    def create_user(self, username: str, password: str) -> User:
+        hashed_password = auth_service.get_password_hash(password)
+        user = User(username=username, hashed_password=hashed_password)
+        self.db.add(user)
+        self.db.commit()
+        self.db.refresh(user)
+        return user
 
-def authenticate_user(db: Session, username: str, password: str):
-    user = get_user_by_username(db, username)
-    if not user or not verify_password(password, user.hashed_password):
-        return None
-    return user
+    def get_user_by_username(self, username: str) -> Optional[User]:
+        return self.db.query(User).filter(User.username == username).first()
 
-def create_post(db: Session, user: User, title: str, content: str):
-    post = Post(title=title, content=content, owner_id=user.id)
-    db.add(post)
-    db.commit()
-    db.refresh(post)
-    return post
+    def authenticate_user(self, username: str, password: str) -> Optional[User]:
+        user = self.get_user_by_username(username)
+        if not user:
+            return None
+        if not auth_service.verify_password(password, user.hashed_password):
+            return None
+        return user
 
-def get_posts(db: Session, category: Optional[str] = None, sort_by: str = "likes"):
-    query = db.query(models.Post)
+    def update_user(self, user: User, updates: UserUpdate) -> User:
+        if updates.username:
+            user.username = updates.username
+        if updates.password:
+            user.hashed_password = auth_service.get_password_hash(updates.password)
+        self.db.commit()
+        self.db.refresh(user)
+        return user
 
-    if category:
-        query = query.filter(models.Post.category == category)
+    def get_user_posts(self, user: User) -> list[Post]:
+        return self.db.query(Post).filter(Post.owner_id == user.id).all()
 
-    if sort_by == "likes":
-        query = query.order_by(models.Post.likes.desc())
-    elif sort_by == "newest":
-        query = query.order_by(models.Post.created_at.desc())
 
-    return query.all()
+class PostService:
+    def __init__(self, db: Session):
+        self.db = db
 
-def get_post(db: Session, post_id: int):
-    return db.query(Post).filter(Post.id == post_id).first()
+    def create_post(self, user: User, title: str, content: str) -> Post:
+        post = Post(title=title, content=content, owner_id=user.id)
+        self.db.add(post)
+        self.db.commit()
+        self.db.refresh(post)
+        return post
 
-def delete_post(db: Session, user: User, post_id: int):
-    post = get_post(db, post_id)
-    if post and post.owner_id == user.id:
-        db.delete(post)
-        db.commit()
-        return True
-    return False
+    def get_post(self, post_id: int) -> Optional[Post]:
+        return self.db.query(Post).filter(Post.id == post_id).first()
 
-def get_post(db: Session, post_id: int):
-    return db.query(Post).filter(Post.id == post_id).first()
+    def get_posts(self, category: Optional[str] = None, sort_by: str = "likes") -> list[Post]:
+        query = self.db.query(Post)
 
-def get_user_posts(db: Session, user: User):
-    return db.query(Post).filter(Post.owner_id == user.id).all()
+        if category:
+            query = query.filter(Post.category == category)
 
-def update_post_image(db: Session, user: User, post_id: int, image_url: str):
-    post = db.query(Post).filter(Post.id == post_id, Post.owner_id == user.id).first()
-    if not post:
-        return None
-    post.image_url = image_url
-    db.commit()
-    db.refresh(post)
-    return post
+        if sort_by == "likes":
+            query = query.order_by(Post.likes.desc())
+        elif sort_by == "newest":
+            query = query.order_by(Post.created_at.desc())
+
+        return query.all()
+
+    def delete_post(self, user: User, post_id: int) -> bool:
+        post = self.get_post(post_id)
+        if post and post.owner_id == user.id:
+            self.db.delete(post)
+            self.db.commit()
+            return True
+        return False
+
+    def update_post_image(self, user: User, post_id: int, image_url: str) -> Optional[Post]:
+        post = self.db.query(Post).filter(Post.id == post_id, Post.owner_id == user.id).first()
+        if not post:
+            return None
+        post.image_url = image_url
+        self.db.commit()
+        self.db.refresh(post)
+        return post

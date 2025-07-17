@@ -1,35 +1,35 @@
-🔐 Что нужно для config.py:
-ACCESS_TOKEN = "ваш_долгоживущий_Access_Token"
-AUTHOR_URN = "urn:li:person:ваш_LinkedIn_ID"
-📌 1. ACCESS_TOKEN — ваш токен доступа
-🔹 Где взять:
-Зарегистрируйте приложение на LinkedIn Developers.
+🔐 What you need for config.py:
+ACCESS_TOKEN = "your_long_lived_Access_Token"
+AUTHOR_URN = "urn:li:person:your_LinkedIn_ID"
 
-Включите продукты:
+📌 1. ACCESS_TOKEN — your access token
+🔹 Where to get it:
+Register an app on LinkedIn Developers.
+
+Enable the following products:
 ✅ Sign In with LinkedIn
 ✅ Share on LinkedIn
 
-В разделе Auth найдите Client ID, Client Secret, и используйте их для получения OAuth Access Token.
+In the Auth section, find your Client ID and Client Secret, and use them to obtain an OAuth access token.
 
-💡 Удобный способ получить токен (вручную):
-Перейди в Postman или на сайт вроде OAuth 2.0 Playground.
+💡 Easy way to get a token manually:
+Use Postman or a site like OAuth 2.0 Playground.
 
-Получи code, затем запроси access_token через https://www.linkedin.com/oauth/v2/accessToken.
+First, get a code, then request the access_token via:
+https://www.linkedin.com/oauth/v2/accessToken
 
-📌 Scopes (права), которые нужно указать при получении токена:
+📌 Required scopes (permissions) when requesting the token:
 
-w_member_social — разрешение на публикации
+w_member_social — permission to post content
 
-r_liteprofile — получить LinkedIn ID (URN)
+r_liteprofile — to get your LinkedIn ID (URN)
 
-r_emailaddress — если нужно email
+r_emailaddress — if you need the email address
 
-🆔 2. AUTHOR_URN — ваш LinkedIn URN (ID)
-Как получить:
-Запусти файл get_urn.py:
-
+🆔 2. AUTHOR_URN — your LinkedIn URN (ID)
+How to get it:
+Run the file get_urn.py:
 python get_urn.py
-Ты получишь что-то вроде:
-
-Ваш LinkedIn URN: urn:li:person:AbCDeFgHiJK12345
-Это и нужно вставить в config.py.
+You’ll get something like:
+Your LinkedIn URN: urn:li:person:AbCDeFgHiJK12345
+That’s what you need to paste into config.py.
