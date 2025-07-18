@@ -1,13 +1,13 @@
-from fastapi import Depends, HTTPException
 from fastapi.security import OAuth2PasswordBearer
 from jose import jwt, JWTError
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
-from database.database import SessionLocal
-from CRUD import crud_auth, crud_posts, crud_user
+from fastapi import HTTPException
+from CRUD import crud_user
 import os
 from dotenv import load_dotenv
 
+load_dotenv()
 
 SECRET_KEY = os.getenv("SECRET_KEY")
 ALGORITHM = os.getenv("ALGORITHM")
@@ -46,23 +46,4 @@ class AuthService:
     def get_token_dependency(self):
         return self.oauth2_scheme
 
-
-# Dependency functions
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
-
-# Instance to be reused
 auth_service = AuthService()
-
-
-# FastAPI dependency-compatible wrapper
-def get_current_user(
-    token: str = Depends(auth_service.get_token_dependency()),
-    db: Session = Depends(get_db),
-):
-    return auth_service.get_current_user(token, db)

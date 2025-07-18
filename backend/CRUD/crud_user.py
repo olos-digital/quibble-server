@@ -2,7 +2,7 @@ from typing import Optional
 from sqlalchemy.orm import Session
 from models.user import User
 from database.user_schemas import UserUpdate
-from config.auth import auth_service
+from config.auth_service import auth_service
 
 class UserService:
     def __init__(self, db: Session):
