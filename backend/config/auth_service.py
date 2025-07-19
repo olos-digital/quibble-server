@@ -14,7 +14,7 @@ ALGORITHM = os.getenv("ALGORITHM")
 
 
 class AuthService:
-    def __init__(self, secret_key: str = SECRET_KEY, algorithm: str = ALGORITHM):
+    def __init__(self, secret_key: str, algorithm: str):
         self.secret_key = secret_key
         self.algorithm = algorithm
         self.pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -45,5 +45,3 @@ class AuthService:
 
     def get_token_dependency(self):
         return self.oauth2_scheme
-
-auth_service = AuthService()
