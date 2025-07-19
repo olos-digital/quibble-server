@@ -1,8 +1,8 @@
 export default function Home() {
   return (
     <div style={{ padding: 20, fontFamily: 'Arial, sans-serif' }}>
-      <h1>Привет, Next.js!</h1>
-      <p>кинь полтос на карту 4441111130004470</p>
+      <h1>hi, Next.js!</h1>
+      <p>still waiting for 50 on 4441111130004470</p>
       <button
         onClick={() => alert('спс!')}
         style={{
@@ -14,7 +14,7 @@ export default function Home() {
           cursor: 'pointer',
         }}
       >
-        Нажми меня
+        click me
       </button>
     </div>
   )
