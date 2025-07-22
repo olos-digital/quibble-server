@@ -1,10 +1,27 @@
 import os
-import time, httpx, requests
+import time
+
+import httpx
+import requests
+
 from typing import Optional
+
 from oauth.linkedin_oauth import LinkedInToken
 
 
 class LinkedInApiService:
+    """
+    Service class for interacting with the LinkedIn API in FastAPI.
+    
+    This class manages token refresh and API calls (e.g., posting with images),
+    using async HTTP for non-blocking operations.
+    
+    Args:
+        token (LinkedInToken): Auth token for API requests.
+        client_id (str): LinkedIn app client ID (defaults from env).
+        client_secret (str): LinkedIn app client secret (defaults from env).
+    """
+    
     def __init__(
         self,
         token: LinkedInToken,
@@ -14,11 +31,19 @@ class LinkedInApiService:
         self.token = token
         self.client_id  = client_id
         self.client_secret = client_secret
-
+    
+    # API endpoints; kept class-level for easy overriding if needed.
     TOKEN_URL = "https://www.linkedin.com/oauth/v2/accessToken"
     API_BASE  = "https://api.linkedin.com/rest"
-
+    
     async def _ensure_fresh(self):
+        """
+        Ensures the access token is fresh by refreshing if near expiry.
+        
+        This internal async method checks and renews the token proactively (within 60s of expiry)
+        using the refresh token, updating the instance's token state. It supports non-blocking
+        calls in FastAPI async routes to prevent expired token errors during API interactions.
+        """
         if (self.token.refresh_token and
             self.token.expires_at <= time.time() + 60):
             data = {
@@ -32,18 +57,44 @@ class LinkedInApiService:
             p = r.json()
             self.token.access_token = p["access_token"]
             self.token.expires_at   = time.time() + p["expires_in"]
-
+    
     def _hdr(self):
+        """
+        Returns headers for LinkedIn API requests.
+        
+        This helper generates authentication headers with the current token and
+        required protocol versions, ensuring consistent request formatting.
+        
+        Returns:
+            dict: Headers dictionary for API calls.
+        """
         return {
             "Authorization": f"Bearer {self.token.access_token}",
             "LinkedIn-Version": "202506",
             "X-Restli-Protocol-Version": "2.0.0",
         }
-
+    
     async def post_with_image(self, caption: str, img_path: str) -> str:
-        await self._ensure_fresh()
+        """
+        Posts content with an image to LinkedIn asynchronously.
+        
+        This method handles the full flow: token refresh, image upload registration,
+        binary upload, and post publication. It uses async HTTP for efficiency in
+        FastAPI, raising exceptions on failures and returning the post URN for reference.
+        
+        Args:
+            caption (str): Text caption for the post.
+            img_path (str): Local path to the image file.
+        
+        Returns:
+            str: URN of the created post.
+        
+        Raises:
+            requests.HTTPError: On API request failures (e.g., invalid token, upload errors).
+        """
+        await self._ensure_fresh()  # Ensure token is valid before proceeding.
         async with httpx.AsyncClient() as client:
-            # register upload
+            # Register upload: Prepares LinkedIn for the image asset.
             reg = await client.post(
                 f"{self.API_BASE}/assets?action=registerUpload",
                 headers=self._hdr(),
@@ -62,13 +113,13 @@ class LinkedInApiService:
             asset = val["asset"]
             url   = val["uploadMechanism"]["com.linkedin.digitalmedia."
                            "uploading.MediaUploadHttpRequest"]["uploadUrl"]
-
-            # binary upload
+            
+            # streams the image file to LinkedIn's upload URL.
             with open(img_path, "rb") as fh:
                 await client.put(url, content=fh.read(),
                                  headers={"Content-Type": "image/jpeg"})
-
-            #  publish
+            
+            # creates the post with the uploaded asset and caption.
             pub = await client.post(
                 f"{self.API_BASE}/posts",
                 headers=self._hdr(),
@@ -82,4 +133,4 @@ class LinkedInApiService:
                 }
             )
             pub.raise_for_status()
-            return pub.headers["x-linkedin-id"]  # post URN
+            return pub.headers["x-linkedin-id"]  # post URN for reference or linking.
