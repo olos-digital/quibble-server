@@ -2,13 +2,14 @@
 import time
 from fastapi import Depends, HTTPException
 
-from ..oauth.linkedin_oauth import LinkedInToken, refresh_access_token
-from ..dependencies.auth import get_current_user, User
+from database.models.user import User
+from oauth.linkedin_oauth import LinkedInToken, refresh_access_token
+from services.auth_service import AuthService
 from .token_store import get_token, save_token   # in-memory cache
 
 
 def get_linkedin_token(
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(AuthService.get_current_user)
 ) -> LinkedInToken:
     token: LinkedInToken | None = get_token(current_user.id)
     if token is None:

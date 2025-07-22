@@ -4,7 +4,7 @@ from services.auth_service import AuthService
 from services.user_service import UserService
 from schemas import user_schemas, post_schemas
 
-from database import get_db
+from database.db_config import get_db
 
 
 class AuthRouter:

@@ -6,4 +6,4 @@ passlib[bcrypt]
 python-jose
 requests
 indent
-
+dependency_injector

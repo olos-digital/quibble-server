@@ -1,7 +1,7 @@
 import os
 import time, httpx, requests
 from typing import Optional
-from ..oauth.linkedin_oauth import LinkedInToken
+from oauth.linkedin_oauth import LinkedInToken
 
 
 class LinkedInApiService:

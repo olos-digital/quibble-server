@@ -1,27 +1,45 @@
-from fastapi import APIRouter, UploadFile, File, Form
-import os, uuid, shutil
-from services.linkedin_service import LinkedInService
+from fastapi import (
+    APIRouter,
+    UploadFile,
+    File,
+    Form,
+    Depends,
+    HTTPException,
+)
+import tempfile
+import shutil
+import os
 
-class LinkedInPostRouter:
-    def __init__(self, linkedin_service: LinkedInService):
-        self.router = APIRouter()
-        self.linkedin_service = linkedin_service
+from services.linkedin_service import LinkedInApiService
+from utilities.linkedin_helper import get_linkedin_token
+
+class LinkedInRouter: 
+    def __init__(self) -> None:
+        self.router = APIRouter(prefix="/linkedin", tags=["LinkedIn"])
         self._setup_routes()
 
-    def _setup_routes(self):
-        @self.router.post("/linkedin_post")
-        def linkedin_post(text: str = Form(...), image: UploadFile = File(...)):
-            os.makedirs("temp_uploads", exist_ok=True)
-            filename = f"temp_{uuid.uuid4().hex}_{image.filename}"
-            filepath = os.path.join("temp_uploads", filename)
+    def _setup_routes(self) -> None:
+        @self.router.post("/post")
+        async def post_text(
+            caption: str = Form(...),
+            token = Depends(get_linkedin_token)
+        ):
+            urn = await LinkedInApiService(token).post_text(caption)
+            return {"message": "LinkedIn text post created", "post_urn": urn}
 
-            with open(filepath, "wb") as buffer:
-                shutil.copyfileobj(image.file, buffer)
-
+        @self.router.post("/post-with-image")
+        async def post_image(
+            caption: str = Form(...),
+            image: UploadFile = File(...),
+            token = Depends(get_linkedin_token)
+        ):
+            with tempfile.NamedTemporaryFile(delete=False, suffix=".jpg") as tmp:
+                shutil.copyfileobj(image.file, tmp)
+                tmp_path = tmp.name
             try:
-                self.linkedin_service.publish_post(text, filepath)
+                urn = await LinkedInApiService(token).post_with_image(caption, tmp_path)
+                return {"message": "LinkedIn image post created", "post_urn": urn}
             finally:
-                if os.path.exists(filepath):
-                    os.remove(filepath)
+                os.remove(tmp_path)
 
-            return {"message": "Post uploaded to LinkedIn"}
+linkedin_router = LinkedInRouter().router
