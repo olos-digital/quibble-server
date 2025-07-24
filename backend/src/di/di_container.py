@@ -11,7 +11,7 @@ from routers.post_router import PostRouter
 from routers.user_router import UserRouter
 from routers.x_router import XRouter
 from routers.linkedin_router import LinkedInRouter
-
+from routers.image_generation_router import ImageGenerationRouter
 
 class Container(containers.DeclarativeContainer):
     """
@@ -42,6 +42,9 @@ class Container(containers.DeclarativeContainer):
     # User router: Injects auth_service for user management with auth checks.
     user_router = providers.Singleton(UserRouter, auth_service=auth_service)
     
+    # Image generation router: No injected dependencies; handles its own service internally
+    image_generation_router = providers.Singleton(ImageGenerationRouter)
+
     # X (Twitter) router: No injected dependencies; handles its own service internally.
     x_router = providers.Singleton(XRouter)
     

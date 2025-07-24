@@ -7,3 +7,8 @@ python-jose
 requests
 indent
 dependency_injector
+
+psutil
+diffusers
+torch
+transformers

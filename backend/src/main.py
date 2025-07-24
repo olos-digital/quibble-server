@@ -31,7 +31,7 @@ def create_app() -> FastAPI:
     app.include_router(container.post_router().router, prefix="/posts", tags=["posts"])
     app.include_router(container.linkedin_router().router, prefix="/linkedin", tags=["linkedin"])
     app.include_router(container.x_router().router, prefix="/x", tags=["x"])
-    
+    app.include_router(container.image_generation_router().router, tags=["image-generation"])
     return app
 
 
