@@ -1,12 +1,16 @@
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
+from starlette.middleware.wsgi import WSGIMiddleware
 from di.di_container import Container
+
+# Import Flask app from mistral_router.py
+from mistral_router import app as flask_app
 
 
 def create_app() -> FastAPI:
     """
     Factory function to create and configure the FastAPI application.
-    
+
     This function initializes the DI container with environment-based config,
     sets up the app instance, attaches the container, mounts static files, and
     includes routers with prefixes/tags.
@@ -17,21 +21,24 @@ def create_app() -> FastAPI:
     container = Container()
     container.config.secret_key.from_env("SECRET_KEY")
     container.config.algorithm.from_env("ALGORITHM")
-    
+
     app = FastAPI()
-    
+
     app.container = container
-    
+
+    # Mount the Flask app under "/mistral" path
+    app.mount("/mistral", WSGIMiddleware(flask_app))
+
     # serves uploaded images; adjust directory for production paths.
     app.mount("/uploads", StaticFiles(directory="../uploads"), name="uploads")
-    
+
     # attaches modular endpoint groups with prefixes and tags for OpenAPI docs.
     app.include_router(container.user_router().router, prefix="/users", tags=["users"])
     app.include_router(container.auth_router().router, prefix="/auth", tags=["auth"])
     app.include_router(container.post_router().router, prefix="/posts", tags=["posts"])
     app.include_router(container.linkedin_router().router, prefix="/linkedin", tags=["linkedin"])
     app.include_router(container.x_router().router, prefix="/x", tags=["x"])
-    
+
     return app
 
 
