@@ -13,4 +13,4 @@ LI_REFRESH_TOKEN=your_member_refresh_token
 LI_ACCESS_TOKEN_EXPIRES=1893456000
 LI_REDIRECT_URI=http://127.0.0.1:8000/auth/linkedin/callback
 LI_OWNER_URN=urn:li:person:8963a8242
-
+HF_API_TOKEN=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
