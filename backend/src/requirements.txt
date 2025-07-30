@@ -7,3 +7,8 @@ python-jose
 requests
 indent
 dependency_injector
+huggingface_hub
+transformers
+tweepy
+python-dotenv
+python-multipart

@@ -1,3 +1,5 @@
+import os
+from huggingface_hub import InferenceClient
 from dependency_injector import containers, providers
 
 # Import services: These are core business logic components injected into routers.
@@ -11,6 +13,7 @@ from routers.post_router import PostRouter
 from routers.user_router import UserRouter
 from routers.x_router import XRouter
 from routers.linkedin_router import LinkedInRouter
+from routers.mistral_router import MistralRouter
 
 
 class Container(containers.DeclarativeContainer):
@@ -22,7 +25,7 @@ class Container(containers.DeclarativeContainer):
     optimize resource usage in a request-response cycle.
     """
     
-    # Configuration provider: Loads app-wide settings, e.g., from env vars.
+    # Configuration provider: Loads app-wide settings, e.g., from .env vars.
     config = providers.Configuration()
     
     # Auth service: Singleton to share a single instance across requests,
@@ -47,3 +50,12 @@ class Container(containers.DeclarativeContainer):
     
     # LinkedIn router: No injected dependencies; manages service per-request.
     linkedin_router = providers.Singleton(LinkedInRouter)
+
+    hf_token = os.getenv("HF_API_TOKEN")
+    mistral_client = InferenceClient(token=hf_token)
+    mistral_router = providers.Singleton(
+        MistralRouter,
+        client=mistral_client,
+        model_id="mistralai/Mistral-7B-v0.1",
+        save_dir="generated_posts"
+    )

@@ -18,8 +18,8 @@ class LinkedInApiService:
     
     Args:
         token (LinkedInToken): Auth token for API requests.
-        client_id (str): LinkedIn app client ID (defaults from env).
-        client_secret (str): LinkedIn app client secret (defaults from env).
+        client_id (str): LinkedIn app client ID (defaults from .env).
+        client_secret (str): LinkedIn app client secret (defaults from .env).
     """
     
     def __init__(
