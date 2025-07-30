@@ -10,11 +10,7 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      PYTHONPATH: ${{ github.workspace }}/backend/src
-
-    defaults:
-      run:
-        working-directory: backend
+      PYTHONPATH: ${{ github.workspace }}/src
 
     strategy:
       matrix:
