@@ -19,6 +19,10 @@ def create_app() -> FastAPI:
     container.config.secret_key.from_env("SECRET_KEY")
     container.config.algorithm.from_env("ALGORITHM")
 
+    container.config.hf_token.from_env("HF_API_TOKEN")
+    container.config.mistral_model_id.from_value("mistralai/Mistral-7B-v0.1")
+    container.config.generated_posts_path.from_value("../generated_posts")
+
     app = FastAPI()
 
     app.container = container
@@ -33,6 +37,7 @@ def create_app() -> FastAPI:
     app.include_router(container.linkedin_router().router, prefix="/linkedin", tags=["linkedin"])
     app.include_router(container.x_router().router, prefix="/x", tags=["x"])
     app.include_router(container.mistral_router().router)
+    app.include_router(container.post_planning_router().router)
 
     return app
 
