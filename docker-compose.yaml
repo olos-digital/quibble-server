@@ -2,6 +2,11 @@ services:
   backend:
     build:
       context: .
-      dockerfile: backend/Dockerfile
+      dockerfile: Dockerfile
     ports:
       - "8000:8000"
+    volumes:
+      - ./artifacts:/app/artifacts
+    environment:
+      DEVICE: cpu
+      ARTIFACTS_DIR: ./artifacts
