@@ -2,9 +2,7 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from starlette.middleware.wsgi import WSGIMiddleware
 from di.di_container import Container
-
-# Import Flask app from mistral_router.py
-from mistral_router import app as flask_app
+from routers.mistral_router import MistralRouter
 
 
 def create_app() -> FastAPI:
@@ -25,9 +23,6 @@ def create_app() -> FastAPI:
     app = FastAPI()
 
     app.container = container
-
-    # Mount the Flask app under "/mistral" path
-    app.mount("/mistral", WSGIMiddleware(flask_app))
 
     # serves uploaded images; adjust directory for production paths.
     app.mount("/uploads", StaticFiles(directory="../uploads"), name="uploads")
