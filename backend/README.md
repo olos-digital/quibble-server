@@ -23,11 +23,11 @@ git clone <repository-url>
 cd quibble-ai-backend
 ```
 
-2. Create a virtual environment:
+2. Create a virtual environment in project root:
 
 ```
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+python -m venv .venv
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 ```
 
 3. Install dependencies:
