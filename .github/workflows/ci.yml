@@ -9,6 +9,9 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
+    env:
+      PYTHONPATH: backend/src
+
     defaults:
       run:
         working-directory: backend
