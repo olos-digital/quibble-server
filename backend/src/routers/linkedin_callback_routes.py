@@ -1,12 +1,8 @@
 from fastapi import APIRouter, Depends
 from fastapi.responses import RedirectResponse
-
-from services.user_service import get_current_user, User
-
 from oauth.linkedin_oauth import exchange_authorization_code
-
+from services.user_service import get_current_user, User
 from utilities.token_store import save_token
-
 
 # Defines a dedicated router for callback endpoints to keep the main app clean.
 router = APIRouter()

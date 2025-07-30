@@ -1,13 +1,13 @@
 from typing import Annotated
+
+from database.db_config import get_db
 from database.models.user import User
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
-from database.db_config import get_db
-
+from schemas.user_schemas import UserCreate, UserUpdate, UserOut
 from services.auth_service import AuthService
 from services.user_service import UserService
+from sqlalchemy.orm import Session
 
-from schemas.user_schemas import UserCreate, UserUpdate, UserOut
 
 class UserRouter:
     """

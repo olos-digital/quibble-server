@@ -1,8 +1,8 @@
 import os
+
 from dotenv import load_dotenv
 
-
-# Load environment variables from a ..env file, allowing for easy configuration management.
+# Load environment variables from a .env file, allowing for easy configuration management.
 load_dotenv()
 
 

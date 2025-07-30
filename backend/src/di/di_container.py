@@ -1,19 +1,16 @@
 import os
-from huggingface_hub import InferenceClient
+
 from dependency_injector import containers, providers
-
-# Import services: These are core business logic components injected into routers.
-from services.linkedin_service import LinkedInApiService
-from services.x_service import XApiService
-from services.auth_service import AuthService
-
+from huggingface_hub import InferenceClient
 # Import routers: These define API endpoints and receive injected services for loose coupling.
 from routers.auth_router import AuthRouter
+from routers.linkedin_router import LinkedInRouter
+from routers.mistral_router import MistralRouter
 from routers.post_router import PostRouter
 from routers.user_router import UserRouter
 from routers.x_router import XRouter
-from routers.linkedin_router import LinkedInRouter
-from routers.mistral_router import MistralRouter
+# Import services: These are core business logic components injected into routers.
+from services.auth_service import AuthService
 
 
 class Container(containers.DeclarativeContainer):

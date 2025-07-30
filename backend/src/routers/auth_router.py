@@ -1,11 +1,9 @@
+from database.db_config import get_db
 from fastapi import APIRouter, Depends, HTTPException
-
-from sqlalchemy.orm import Session
-
+from schemas import user_schemas, post_schemas
 from services.auth_service import AuthService
 from services.user_service import UserService
-from schemas import user_schemas, post_schemas  
-from database.db_config import get_db  
+from sqlalchemy.orm import Session
 
 
 class AuthRouter:

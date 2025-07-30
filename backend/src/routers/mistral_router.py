@@ -1,7 +1,8 @@
 import json
+from pathlib import Path
+
 from fastapi import APIRouter, HTTPException, Body
 from huggingface_hub import InferenceClient
-from pathlib import Path
 
 
 class MistralRouter:

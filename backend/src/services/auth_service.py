@@ -1,15 +1,15 @@
-from fastapi import HTTPException, Depends
-from fastapi.security import OAuth2PasswordBearer
-from typing import Dict
-from jose import jwt, JWTError
-from passlib.context import CryptContext
-from sqlalchemy.orm import Session
 import os
-from dotenv import load_dotenv
+from typing import Dict
 
 from database.db_config import get_db
 from database.models.user import User
+from dotenv import load_dotenv
+from fastapi import HTTPException, Depends
+from fastapi.security import OAuth2PasswordBearer
+from jose import jwt, JWTError
+from passlib.context import CryptContext
 from services.user_service import UserService
+from sqlalchemy.orm import Session
 
 # Load environment variables: ensures secrets like keys are available early;
 load_dotenv()

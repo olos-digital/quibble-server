@@ -1,6 +1,8 @@
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Enum
 from sqlalchemy.orm import relationship
+
 from .base import Base
+
 
 class PostPlan(Base):
     __tablename__ = "post_plans"

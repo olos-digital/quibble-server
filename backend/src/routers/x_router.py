@@ -1,15 +1,15 @@
-from fastapi import (
-    APIRouter,
-    UploadFile,
-    File,
-    Form,
-    HTTPException,
-)
-import tempfile
-import shutil
 import os
+import shutil
+import tempfile
 
-from services.x_service import XApiService 
+from fastapi import (
+	APIRouter,
+	UploadFile,
+	File,
+	Form,
+	HTTPException,
+)
+from services.x_service import XApiService
 
 
 class XRouter:
