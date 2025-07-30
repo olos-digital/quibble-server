@@ -1,11 +1,11 @@
 import time
 
-from fastapi import Depends, HTTPException
-
 from database.models.user import User
+from fastapi import Depends, HTTPException
 from oauth.linkedin_oauth import LinkedInToken, refresh_access_token
 from services.auth_service import AuthService
-from .token_store import get_token, save_token   # in-memory cache
+
+from .token_store import get_token, save_token  # in-memory cache
 
 
 def get_linkedin_token(

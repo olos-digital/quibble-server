@@ -1,6 +1,6 @@
 import os
-from dotenv import load_dotenv
 
+from dotenv import load_dotenv
 
 # Load environment variables from a .env file, allowing for easy configuration management.
 load_dotenv()
@@ -23,7 +23,7 @@ class Settings:
         ALGORITHM (str): JWT encoding algorithm (e.g., HS256); configurable for security needs.
     """
     
-    # Defaults to a local SQLite file; override via env var for production (e.g., PostgreSQL).
+    # Defaults to a local SQLite file; override via .env var for production (e.g., PostgreSQL).
     DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite:///./app.db")
     
     # Used for cryptographic operations like token signing; never commit to version control.

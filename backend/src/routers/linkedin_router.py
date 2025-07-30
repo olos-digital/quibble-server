@@ -1,18 +1,16 @@
-from fastapi import (
-    APIRouter,
-    UploadFile,
-    File,
-    Form,
-    Depends,
-    HTTPException,
-)
-import tempfile
-import shutil
 import os
+import shutil
+import tempfile
 
+from fastapi import (
+	APIRouter,
+	UploadFile,
+	File,
+	Form,
+	Depends,
+)
 from services.linkedin_service import LinkedInApiService  # Service for LinkedIn API interactions.
-
-from utilities.linkedin_helper import get_linkedin_token 
+from utilities.linkedin_helper import get_linkedin_token
 
 
 class LinkedInRouter:

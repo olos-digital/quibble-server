@@ -1,8 +1,9 @@
 import os
 import time
-import requests
 
+import requests
 from pydantic import BaseModel
+
 
 class LinkedInToken(BaseModel):
     """

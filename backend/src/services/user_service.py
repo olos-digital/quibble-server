@@ -1,9 +1,10 @@
 from typing import Optional, List
-from sqlalchemy.orm import Session
+
 from database.models.user import User
-from database.db_config import get_db
 from schemas.user_schemas import UserUpdate
+from sqlalchemy.orm import Session
 from utilities.password_utils import get_password_hash, verify_password  # New import
+
 
 class UserService:
     """

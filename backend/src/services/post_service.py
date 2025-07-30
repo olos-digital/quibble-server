@@ -1,8 +1,9 @@
-from typing import Optional, List
-from sqlalchemy.orm import Session
+from typing import Optional
 
 from database.models.post import Post
 from database.models.user import User
+from sqlalchemy.orm import Session
+
 
 class PostService:
     """
