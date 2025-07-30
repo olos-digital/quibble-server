@@ -23,14 +23,8 @@ git clone <repository-url>
 cd quibble-ai-backend
 ```
 
-2. Create a virtual environment in project root:
 
-```
-python -m venv .venv
-source .venv/bin/activate  # On Windows: .venv\Scripts\activate
-```
-
-3. Install dependencies:
+2. Install dependencies:
 
 ```
 pip install -r requirements.txt
@@ -39,6 +33,11 @@ pip install -r requirements.txt
 
 ## Running the Application
 
+- Development mode (with auto-reload):
+
+```
+uvicorn main:app --reload --env-file .env
+=======
 - Development mode (with auto-reload)
 
 In the backend/src run following command:
