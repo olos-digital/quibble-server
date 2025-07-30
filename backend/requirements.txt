@@ -1,4 +1,4 @@
-fastapi
+fastapi[all]
 uvicorn
 sqlalchemy
 pydantic
@@ -12,3 +12,4 @@ transformers
 tweepy
 python-dotenv
 python-multipart
+rich

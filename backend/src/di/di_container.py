@@ -57,5 +57,5 @@ class Container(containers.DeclarativeContainer):
         MistralRouter,
         client=mistral_client,
         model_id="mistralai/Mistral-7B-v0.1",
-        save_dir="generated_posts"
+        save_dir="../generated_posts"
     )

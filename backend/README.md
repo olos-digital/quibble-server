@@ -39,10 +39,12 @@ pip install -r requirements.txt
 
 ## Running the Application
 
-- Development mode (with auto-reload):
+- Development mode (with auto-reload)
+
+In the backend/src run following command:
 
 ```
-uvicorn main:app --reload --env-file .env
+uvicorn main:app --reload --env-file ../.env
 ```
 
 
