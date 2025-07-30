@@ -77,7 +77,7 @@ class Container(containers.DeclarativeContainer):
         PostPlanningService,
         plan_repo=post_planning_repo,
         post_repo=planned_post_repo,
-        ai_client=providers.DependenciesContainer().mistral_client,
+        ai_client=mistral_client,
     )
 
     post_planning_router = providers.Factory(
