@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      PYTHONPATH: backend/src
+      PYTHONPATH: ${{ github.workspace }}/backend/src
 
     defaults:
       run:
