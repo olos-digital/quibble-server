@@ -29,7 +29,7 @@ class AuthService:
         algorithm (str): JWT encoding algorithm (e.g., HS256).
     """
     
-    # class-level defaults: Loaded from env; overridden in __init__ for flexibility.
+    # class-level defaults: Loaded from .env; overridden in __init__ for flexibility.
     SECRET_KEY = os.getenv("SECRET_KEY")
     ALGORITHM = os.getenv("ALGORITHM")
     

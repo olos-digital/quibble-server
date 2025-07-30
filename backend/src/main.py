@@ -17,7 +17,7 @@ def create_app() -> FastAPI:
     Returns:
         FastAPI: Configured application instance.
     """
-    # loads config from env vars for security-sensitive settings.
+    # loads config from .env vars for security-sensitive settings.
     container = Container()
     container.config.secret_key.from_env("SECRET_KEY")
     container.config.algorithm.from_env("ALGORITHM")
@@ -38,6 +38,7 @@ def create_app() -> FastAPI:
     app.include_router(container.post_router().router, prefix="/posts", tags=["posts"])
     app.include_router(container.linkedin_router().router, prefix="/linkedin", tags=["linkedin"])
     app.include_router(container.x_router().router, prefix="/x", tags=["x"])
+    app.include_router(container.mistral_router().router)
 
     return app
 

@@ -22,7 +22,7 @@ class Container(containers.DeclarativeContainer):
     optimize resource usage in a request-response cycle.
     """
     
-    # Configuration provider: Loads app-wide settings, e.g., from env vars.
+    # Configuration provider: Loads app-wide settings, e.g., from .env vars.
     config = providers.Configuration()
     
     # Auth service: Singleton to share a single instance across requests,
@@ -47,3 +47,10 @@ class Container(containers.DeclarativeContainer):
     
     # LinkedIn router: No injected dependencies; manages service per-request.
     linkedin_router = providers.Singleton(LinkedInRouter)
+
+    mistral_router = providers.Singleton(
+        MistralRouter,
+        client=mistral_client,
+        model_id="mistralai/Mistral-7B-v0.1",
+        save_dir="generated_posts"
+    )

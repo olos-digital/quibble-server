@@ -1,35 +1,51 @@
-from flask import Blueprint, request, jsonify, Flask
-import os
-from huggingface_hub import InferenceClient
 import json
+from fastapi import APIRouter, HTTPException, Body
+from huggingface_hub import InferenceClient
+from pathlib import Path
 
-bp = Blueprint("mistral", __name__, url_prefix="/mistral")
 
-API_TOKEN = os.getenv("HF_API_TOKEN")
-client = InferenceClient(token=API_TOKEN)
-model_id = "mistralai/Mistral-7B-v0.1"
+class MistralRouter:
+    """
+    Router class for text generation using Mistral model.
+    """
 
-@bp.route("/generate", methods=["POST"])
-def generate_post():
-    data = request.json
-    topic = data.get("topic", "")
-    if not topic:
-        return jsonify({"error": "Topic is required"}), 400
+    def __init__(self, client: InferenceClient, model_id: str, save_dir: str = "generated_posts"):
+        self.router = APIRouter(prefix="/mistral", tags=["Mistral"])
+        self.client = client
+        self.model_id = model_id
+        self.save_dir = Path(save_dir)
+        self.save_dir.mkdir(parents=True, exist_ok=True)
 
-    prompt = f"write post about: {topic}"
-    response = client.text_generation(model=model_id, inputs=prompt, parameters={"max_new_tokens": 200})
-    post_text = response.generated_text
+        self._setup_routes()
 
-    result = {
-        "topic": topic,
-        "post": post_text
-    }
+    def _setup_routes(self):
+        @self.router.post("/generate")
+        async def generate_post(data: dict = Body(...)):
+            """
+            Generates text based on a full prompt provided by the user.
 
-    filename = f"post_{topic[:10].replace(' ', '_')}.json"
-    with open(filename, "w", encoding="utf-8") as f:
-        json.dump(result, f, ensure_ascii=False, indent=4)
+            Args:
+                data (dict): JSON with "prompt" field.
+            """
+            prompt = data.get("prompt", "")
+            if not prompt:
+                raise HTTPException(status_code=400, detail="Prompt is required")
 
-    return jsonify(result)
+            response = self.client.text_generation(
+                model=self.model_id,
+                inputs=prompt,
+                parameters={"max_new_tokens": 300}
+            )
 
-app = Flask(__name__)
-app.register_blueprint(bp)
+            post_text = getattr(response, "generated_text", response)
+
+            result = {
+                "prompt": prompt,
+                "post": post_text
+            }
+
+            filename = self.save_dir / f"post_{prompt[:20].replace(' ', '_')}.json"
+            with open(filename, "w", encoding="utf-8") as f:
+                json.dump(result, f, ensure_ascii=False, indent=4)
+
+            return result

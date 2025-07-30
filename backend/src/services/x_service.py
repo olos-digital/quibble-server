@@ -12,7 +12,7 @@ class XApiService:
     """
     
     def __init__(self):
-        # load credentials fetched from env vars for security; avoids hardcoding sensitive data.
+        # load credentials fetched from .env vars for security; avoids hardcoding sensitive data.
         self.consumer_key = os.getenv("X_CONSUMER_KEY")
         self.consumer_secret = os.getenv("X_CONSUMER_SECRET")
         self.access_token = os.getenv("X_ACCESS_TOKEN")
