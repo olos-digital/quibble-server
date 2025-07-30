@@ -1,4 +1,4 @@
-fastapi
+fastapi[all]
 uvicorn
 sqlalchemy
 pydantic
@@ -7,8 +7,13 @@ python-jose
 requests
 indent
 dependency_injector
-
+huggingface_hub
+transformers
+tweepy
+python-dotenv
+python-multipart
+rich
+pytest
 psutil
 diffusers
 torch
-transformers
