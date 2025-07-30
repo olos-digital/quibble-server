@@ -1,4 +1,5 @@
 import os
+
 import requests
 
 # Headers: configured with Bearer authentication for LinkedIn API calls.

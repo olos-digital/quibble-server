@@ -1,5 +1,7 @@
-import tweepy
 import os
+
+import tweepy
+
 
 class XApiService:
     """

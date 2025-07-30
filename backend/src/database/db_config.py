@@ -1,9 +1,7 @@
+from config.settings import settings
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
-
-from config.settings import settings
-
 
 # Database engine: Core connection pool for SQLAlchemy; configured with the app's DATABASE_URL.
 # The connect_args handle SQLite-specific threading behavior to prevent concurrency issues

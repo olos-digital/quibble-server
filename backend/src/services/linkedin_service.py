@@ -3,9 +3,6 @@ import time
 
 import httpx
 import requests
-
-from typing import Optional
-
 from oauth.linkedin_oauth import LinkedInToken
 
 

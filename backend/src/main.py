@@ -1,8 +1,7 @@
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
-from starlette.middleware.wsgi import WSGIMiddleware
+
 from di.di_container import Container
-from routers.mistral_router import MistralRouter
 
 
 def create_app() -> FastAPI:
