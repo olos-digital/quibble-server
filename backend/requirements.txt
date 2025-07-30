@@ -13,3 +13,4 @@ tweepy
 python-dotenv
 python-multipart
 rich
+pytest
