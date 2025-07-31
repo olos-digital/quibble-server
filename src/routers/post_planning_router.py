@@ -21,8 +21,10 @@ class PostPlanningRouter:
         def create_plan(data: PostPlanCreate):
             try:
                 return self.service.create_plan(data)
-            except Exception as e:
+            except ValueError as e:
                 raise HTTPException(status_code=400, detail=str(e))
+            except Exception as e:
+                raise HTTPException(status_code=500, detail="Failed to create plan") from e
 
         @self.router.post("/{plan_id}/generate", response_model=List[PlannedPostRead])
         def ai_generate(plan_id: int):

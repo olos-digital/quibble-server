@@ -27,12 +27,14 @@ class FakePostPlanningService:
         # Always returns two dummy PlannedPostRead objects
         return [
             PlannedPostRead(
+                plan_id=plan_id,
                 id=1,
                 content="First post",
                 scheduled_time=now,
                 ai_suggested=True,
             ),
             PlannedPostRead(
+                plan_id=plan_id,
                 id=2,
                 content="Second post",
                 scheduled_time=None,
@@ -41,9 +43,9 @@ class FakePostPlanningService:
         ]
 
     def update_post(self, plan_id: int, post_id: int, data: PlannedPostCreate) -> PlannedPostRead:
-        # Echo back the updated post
         return PlannedPostRead(
             id=post_id,
+            plan_id=plan_id,
             content=data.content,
             scheduled_time=data.scheduled_time,
             ai_suggested=False,
@@ -60,7 +62,7 @@ def client():
 def test_create_plan(client):
     # Use an ISO datetime string for plan_date
     dt = "2025-07-30T12:00:00Z"
-    payload = {"account_id": 42, "plan_date": dt}
+    payload = {"plan_id": 1, "account_id": 42, "plan_date": dt}
     resp = client.post("/planning/", json=payload)
     assert resp.status_code == 200, resp.text
     body = resp.json()
@@ -83,9 +85,8 @@ def test_generate_posts(client):
     assert first["content"] == "First post"
 
 def test_update_post(client):
-    # Patch a single post — include scheduled_time if desired
     dt = "2025-07-31T08:30:00Z"
-    payload = {"content": "updated!", "scheduled_time": dt}
+    payload = { "plan_id": 8, "content": "updated!", "scheduled_time": dt}
     resp = client.patch("/planning/7/posts/3", json=payload)
     assert resp.status_code == 200, resp.text
     body = resp.json()

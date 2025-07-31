@@ -3,6 +3,7 @@ from datetime import datetime
 from typing import List, Optional
 
 class PlannedPostCreate(BaseModel):
+    plan_id: int
     content: str
     scheduled_time: Optional[datetime]
 
