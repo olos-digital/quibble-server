@@ -1,19 +1,24 @@
 def register_and_get_token(client, username, password):
+    # register via auth router
     resp = client.post("/auth/register", json={"username": username, "password": password})
     assert resp.status_code == 200, resp.text
-    resp2 = client.post("/auth/login", json={"username": username, "password": password})
-    assert resp2.status_code == 200, resp2.text
-    token = resp2.json()["access_token"]
-    return token
+    login = client.post("/auth/login", json={"username": username, "password": password})
+    assert login.status_code == 200, login.text
+    return login.json()["access_token"]
+
+
+def auth_headers(token: str):
+    return {"Authorization": f"Bearer {token}"}
 
 
 def test_get_me_requires_auth(client):
     resp = client.get("/users/me")
     assert resp.status_code == 401
 
+
 def test_register_and_get_me(client):
     token = register_and_get_token(client, "eve", "strongpass")
-    headers = {"Authorization": f"Bearer {token}"}
+    headers = auth_headers(token)
     resp = client.get("/users/me", headers=headers)
     assert resp.status_code == 200
     body = resp.json()

@@ -42,11 +42,6 @@ class Container(containers.DeclarativeContainer):
         algorithm=config.algorithm,
     )
 
-    user_service = providers.Singleton(
-        UserService,
-        db_session=db_session
-    )
-
     # Auth router: Injects auth_service for handling authentication endpoints.
     auth_router = providers.Singleton(AuthRouter, auth_service=auth_service)
 
@@ -54,7 +49,7 @@ class Container(containers.DeclarativeContainer):
     post_router = providers.Singleton(PostRouter, auth_service=auth_service)
 
     # User router: Injects auth_service for user management with auth checks.
-    user_router = providers.Singleton(UserRouter, auth_service=auth_service, user_service=user_service)
+    user_router = providers.Singleton(UserRouter, auth_service=auth_service)
 
     # X (Twitter) router: No injected dependencies; handles its own service internally.
     x_router = providers.Singleton(XRouter)
@@ -81,8 +76,6 @@ class Container(containers.DeclarativeContainer):
         ImageGenerationRouter,
         client=stable_diff_client
     )
-
-    db_session = providers.Singleton(SessionLocal)
 
     # Post planning dependencies
     post_planning_repo = providers.Factory(

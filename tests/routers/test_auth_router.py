@@ -1,6 +1,4 @@
 import pytest
-from src.schemas.user_schemas import UserCreate
-from src.schemas.post_schemas import Token
 
 def test_register_success(client):
     payload = {"username": "alice", "password": "secret123"}
@@ -9,8 +7,8 @@ def test_register_success(client):
     body = resp.json()
     assert body["username"] == "alice"
     assert "id" in body
-    assert "password" not in body  # sensitive excluded
-
+    # assuming your UserOut excludes hashed password
+    assert "hashed_password" not in body and "password" not in body
 
 def test_register_duplicate(client):
     payload = {"username": "bob", "password": "p@ssw0rd"}
@@ -21,9 +19,7 @@ def test_register_duplicate(client):
     assert resp2.status_code == 400
     assert resp2.json()["detail"] == "User already exists"
 
-
 def test_login_success(client):
-    # first register with valid-length password
     register = {"username": "charlie", "password": "securepwd"}
     client.post("/auth/register", json=register)
 
@@ -34,7 +30,6 @@ def test_login_success(client):
     assert body["access_token"] == "fake-jwt-token-for-charlie"
     assert body["token_type"] == "bearer"
 
-
 def test_login_failure_wrong_password(client):
     register = {"username": "dave", "password": "correct1"}
     client.post("/auth/register", json=register)
@@ -43,7 +38,6 @@ def test_login_failure_wrong_password(client):
     resp = client.post("/auth/login", json=wrong)
     assert resp.status_code == 401
     assert resp.json()["detail"] == "Incorrect username or password"
-
 
 def test_login_failure_nonexistent_user(client):
     resp = client.post("/auth/login", json={"username": "noone", "password": "whatever"})
