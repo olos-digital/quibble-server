@@ -1,5 +1,6 @@
 fastapi[all]~=0.116.1
 uvicorn
+alembic
 sqlalchemy~=2.0.42
 pydantic~=2.11.7
 passlib[bcrypt]~=1.7.4
