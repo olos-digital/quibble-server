@@ -54,8 +54,6 @@ class Container(containers.DeclarativeContainer):
     # LinkedIn router: No injected dependencies; manages service per-request.
     linkedin_router = providers.Singleton(LinkedInRouter)
 
-    image_generation_router = providers.Singleton(ImageGenerationRouter)
-
     mistral_client = providers.Singleton(
         MistralClient,
         hf_token=config.hf_token,

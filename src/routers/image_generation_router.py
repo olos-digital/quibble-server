@@ -19,7 +19,3 @@ class ImageGenerationRouter:
         async def generate_image(request: ImageGenerationRequest):
             generated = await self.client.generate_image(request.prompt)
             return {"images": [generated]}
-
-# Export router for app inclusion
-image_generation_router = ImageGenerationRouter(client=ImageGenerationClient()).router
-
