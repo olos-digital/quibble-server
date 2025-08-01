@@ -43,6 +43,7 @@ class Container(containers.DeclarativeContainer):
     )
     mistral_router = providers.Factory(
         MistralRouter,
+        mistral_client=mistral_client,
     )
 
     # --- Database ---

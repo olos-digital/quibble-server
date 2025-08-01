@@ -17,7 +17,6 @@ def create_app() -> FastAPI:
 
     # Initialize DI container
     container = Container()
-    mistral_router = MistralRouter()
     # Load environment variables
     container.config.secret_key.from_env("SECRET_KEY")
     container.config.algorithm.from_env("ALGORITHM")
@@ -45,7 +44,7 @@ def create_app() -> FastAPI:
     app.include_router(container.x_router().router, prefix="/x", tags=["x"])
     app.include_router(container.image_generation_router().router, tags=["image-generation"])
     app.include_router(container.post_planning_router().router)
-    app.include_router(container.mistral_router().router, prefix="/mistral", tags=["mistral"])
+    app.include_router(container.mistral_router().router)
 
     return app
 
