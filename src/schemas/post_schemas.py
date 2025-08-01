@@ -41,9 +41,11 @@ class Post(PostBase):
     
     Attributes:
         id (int): Unique identifier for the post.
+        image_url (str): URL to the optional post image.
     """
     id: int
-    
+    image_url: Optional[str] = None
+
     class Config:
         from_attributes = True  # enables compatibility with ORM models (e.g., SQLAlchemy).
 

@@ -13,7 +13,9 @@ import src.database.models.post  # noqa: F401
 from src.database.db_config import get_db
 from src.di.di_container import Container
 from src.routers.auth_router import AuthRouter
+from src.routers.linkedin_router import linkedin_router
 from src.routers.user_router import UserRouter
+from src.utilities.linkedin_helper import get_linkedin_token
 
 # Shared in-memory SQLite (single connection so tables persist)
 TEST_SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"
@@ -42,6 +44,9 @@ def client():
     # each request gets fresh test session
     container.db_session.override(providers.Factory(TestingSessionLocal))
 
+    def fake_get_linkedin_token():
+        return "linkedin-token-abc"
+
     # Dummy auth service: token format "fake-jwt-token-for-<username>"
     class DummyAuthService:
         def create_access_token(self, data: dict):
@@ -69,6 +74,8 @@ def client():
     user_router = UserRouter(auth_service=DummyAuthService())
     app.include_router(user_router.router, prefix="/users", tags=["users"])
 
+    app.include_router(linkedin_router)
+
     # override get_db to ensure isolated short-lived session per request
     def override_get_db():
         db = TestingSessionLocal()
@@ -78,5 +85,6 @@ def client():
             db.close()
 
     app.dependency_overrides[get_db] = override_get_db
+    app.dependency_overrides[get_linkedin_token] = lambda: "linkedin-token-abc"
 
     return TestClient(app)
