@@ -1,5 +1,5 @@
-from fastapi import APIRouter, HTTPException, Depends
-from src.utilities.mistral_client import MistralClient
+from fastapi import APIRouter, HTTPException
+from src.generation.text.mistral_client import MistralClient
 from src.schemas.mistral_shemas import PromptRequest  # updated import
 
 

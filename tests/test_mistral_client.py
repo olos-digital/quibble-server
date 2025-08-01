@@ -1,6 +1,6 @@
 import pytest
 from unittest.mock import patch, MagicMock
-from src.utilities.mistral_client import MistralClient
+from src.generation.text.mistral_client import MistralClient
 
 @pytest.fixture
 def client(tmp_path):

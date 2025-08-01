@@ -7,7 +7,7 @@ from src.routers.x_router import XRouter
 from src.routers.linkedin_router import LinkedInRouter
 from src.routers.image_generation_router import ImageGenerationRouter
 from src.routers.post_planning_router import PostPlanningRouter
-from src.utilities.mistral_client import MistralClient
+from src.generation.text.mistral_client import MistralClient
 from src.routers.mistral_router import MistralRouter
 from src.database.db_config import SessionLocal
 from src.repositories.post_plan_repo import PostPlanRepo

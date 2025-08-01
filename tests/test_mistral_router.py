@@ -2,7 +2,7 @@ import pytest
 from fastapi.testclient import TestClient
 from fastapi import FastAPI
 from unittest.mock import MagicMock
-from src.utilities.mistral_client import MistralClient
+from src.generation.text.mistral_client import MistralClient
 from src.routers.mistral_router import MistralRouter, GenerateRequest
 
 
