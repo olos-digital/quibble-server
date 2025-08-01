@@ -1,13 +1,14 @@
 from typing import Annotated
 
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import Session
+
 from src.database.db_config import get_db
 from src.database.models.user import User
-from fastapi import APIRouter, Depends, HTTPException
+
 from src.schemas.user_schemas import UserCreate, UserUpdate, UserOut
 from src.services.auth_service import AuthService
 from src.services.user_service import UserService
-from sqlalchemy.orm import Session
-
 
 class UserRouter:
     """
@@ -27,31 +28,6 @@ class UserRouter:
 
     def _setup_routes(self):
         # encapsulates endpoint handlers for organization.
-        
-        @self.router.post("/register", response_model=UserOut)
-        def register(user: UserCreate, db: Annotated[Session, Depends(get_db)]):
-            """
-            Registers a new user.
-            
-            This endpoint checks for username uniqueness, hashes the password, and creates
-            a user record.
-            
-            Args:
-                user (UserCreate): Input data with username and password.
-                db (Session): Injected database session.
-            
-            Returns:
-                UserOut: Created user data (sanitized).
-            
-            Raises:
-                HTTPException: 400 if the username is already registered.
-            """
-            db_user = UserService.get_user_by_username(db, user.username)
-            if db_user:
-                raise HTTPException(status_code=400, detail="Username already registered")
-            hashed_pw = AuthService.get_password_hash(user.password)
-            new_user = UserService.create_user(db, user.username, hashed_pw)
-            return new_user
         
         @self.router.get("/me", response_model=UserOut)
         def get_me(current_user: Annotated[User, Depends(self.auth_service.get_current_user)]):

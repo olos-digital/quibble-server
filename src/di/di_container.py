@@ -15,7 +15,8 @@ from src.routers.x_router import XRouter
 
 from src.services.auth_service import AuthService
 from src.services.post_planning_service import PostPlanningService
-from src.utilities.mistral_client import MistralClient
+from src.generation.text.mistral_client import MistralClient
+from src.generation.images.stab_diff_client import ImageGenerationClient
 
 
 class Container(containers.DeclarativeContainer):
@@ -53,8 +54,6 @@ class Container(containers.DeclarativeContainer):
     # LinkedIn router: No injected dependencies; manages service per-request.
     linkedin_router = providers.Singleton(LinkedInRouter)
 
-    image_generation_router = providers.Singleton(ImageGenerationRouter)
-
     mistral_client = providers.Singleton(
         MistralClient,
         hf_token=config.hf_token,
@@ -63,6 +62,17 @@ class Container(containers.DeclarativeContainer):
     )
 
     mistral_router = providers.Singleton(MistralRouter, client=mistral_client)
+
+    stable_diff_client = providers.Singleton(
+        ImageGenerationClient,
+        model_id=config.stable_diff_model_id,
+        hf_token=config.hf_token
+    )
+
+    image_generation_router = providers.Singleton(
+        ImageGenerationRouter,
+        client=stable_diff_client
+    ) 
 
     db_session = providers.Singleton(SessionLocal)
 
