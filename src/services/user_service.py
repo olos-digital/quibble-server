@@ -2,9 +2,8 @@ from typing import Optional, List
 
 from src.database.models.user import User
 from src.schemas.user_schemas import UserUpdate
-from sqlalchemy.orm import Session
-from src.utilities.password_utils import get_password_hash, verify_password  # New import
-
+from src.utilities.password_utils import get_password_hash, verify_password
+from src.repositories.user_repo import UserRepository
 
 class UserService:
     """
@@ -18,8 +17,8 @@ class UserService:
         db (Session): SQLAlchemy session for database interactions.
     """
     
-    def __init__(self, db: Session):
-        self.db = db  # Store the session for all operations.
+    def __init__(self, user_repo: UserRepository):
+        self.user_repo = user_repo
     
     def create_user(self, username: str, password: str) -> User:
         """
@@ -38,10 +37,7 @@ class UserService:
         """
         hashed_password = get_password_hash(password)
         user = User(username=username, hashed_password=hashed_password)
-        self.db.add(user)
-        self.db.commit()
-        self.db.refresh(user)
-        return user
+        return self.user_repo.create(user)
     
     def get_user_by_username(self, username: str) -> Optional[User]:
         """
@@ -56,8 +52,8 @@ class UserService:
         Returns:
             Optional[User]: The user if found, else None.
         """
-        return self.db.query(User).filter(User.username == username).first()
-    
+        return self.user_repo.get_by_username(username) 
+   
     def authenticate_user(self, username: str, password: str) -> Optional[User]:
         """
         Authenticates a user by username and password.

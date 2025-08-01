@@ -7,7 +7,7 @@ from src.schemas.planning import (
     PlannedPostCreate,
     PlannedPostRead,
 )
-from src.utilities.mistral_client import MistralClient
+from src.generation.text.mistral_client import MistralClient
 
 
 class PostPlanningService:
