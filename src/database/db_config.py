@@ -17,10 +17,6 @@ engine = create_engine(
 SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)
 
 
-# Declarative base: Foundation for all SQLAlchemy models; used to define tables and
-# relationships, enabling schema creation/migration via Alembic in FastAPI projects.
-Base = declarative_base()
-
 def get_db():
     """
     Dependency function for FastAPI to provide a database session.
