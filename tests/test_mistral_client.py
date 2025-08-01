@@ -1,55 +1,77 @@
-import pytest
+import unittest
 from unittest.mock import patch, MagicMock
+import os
 from src.generation.text.mistral_client import MistralClient
 
-@pytest.fixture
-def client(tmp_path):
-    # tmp_path — временная директория pytest для сохранения файлов
-    return MistralClient(hf_token="fake-token", model_id="fake-model", save_dir=str(tmp_path))
 
-@patch("httpx.post")
-def test_generate_posts_success(mock_post, client):
-    # Мокаем успешный ответ API
-    mock_response = MagicMock()
-    mock_response.json.return_value = [{"generated_text": "Generated text"}]
-    mock_response.raise_for_status.return_value = None
-    mock_post.return_value = mock_response
+class TestMistralClient(unittest.TestCase):
 
-    drafts = client.generate_posts("Hello", n=1, max_tokens=10)
-    assert drafts == ["Generated text"]
+    @patch.dict(os.environ, {"MISTRAL_API_KEY": "env_api_key"})
+    def test_init_with_env_key(self):
+        client = MistralClient()
+        self.assertEqual(client.api_key, "env_api_key")
+        self.assertEqual(client.api_url, "https://api.mistral.ai/v1/chat/completions")
+        self.assertIn("Authorization", client.headers)
+        self.assertIn("Content-Type", client.headers)
 
-@patch("httpx.post")
-def test_generate_posts_unexpected_format(mock_post, client):
-    # Ответ — не список и не dict с generated_text
-    mock_response = MagicMock()
-    mock_response.json.return_value = {"unexpected": "data"}
-    mock_response.raise_for_status.return_value = None
-    mock_post.return_value = mock_response
+    def test_init_with_argument_key(self):
+        client = MistralClient(api_key="arg_api_key")
+        self.assertEqual(client.api_key, "arg_api_key")
 
-    drafts = client.generate_posts("Hello")
-    assert drafts == ["{'unexpected': 'data'}"] or drafts == [str({"unexpected": "data"})]
+    @patch.dict(os.environ, {}, clear=True)
+    def test_init_no_key_raises(self):
+        with self.assertRaises(ValueError) as ctx:
+            MistralClient()
+        self.assertIn("MISTRAL_API_KEY not found", str(ctx.exception))
 
-@patch("httpx.post")
-def test_generate_posts_http_error(mock_post, client):
-    from httpx import HTTPStatusError, Response, Request
+    @patch("src.generation.text.mistral_client.requests.post")
+    def test_generate_text_success(self, mock_post):
+        mock_resp = MagicMock()
+        mock_resp.json.return_value = {"result": "some generated text"}
+        mock_resp.raise_for_status.return_value = None
+        mock_post.return_value = mock_resp
 
-    response = Response(status_code=401, request=Request("POST", "http://test"))
-    mock_post.return_value.raise_for_status.side_effect = HTTPStatusError("Unauthorized", request=response.request, response=response)
+        client = MistralClient(api_key="testkey")
+        response = client.generate_text("hello prompt", model="mistral-test", max_tokens=10)
 
-    with pytest.raises(RuntimeError) as excinfo:
-        client.generate_posts("Hello")
+        expected_payload = {
+            "model": "mistral-test",
+            "messages": [{"role": "user", "content": "hello prompt"}],
+            "temperature": 0.7,
+            "max_tokens": 10,
+        }
+        mock_post.assert_called_once_with(client.api_url, headers=client.headers, json=expected_payload)
+        self.assertEqual(response, {"result": "some generated text"})
 
-    assert "Mistral API error" in str(excinfo.value)
+    @patch("src.generation.text.mistral_client.requests.post")
+    def test_generate_text_http_error(self, mock_post):
+        mock_resp = MagicMock()
+        mock_resp.raise_for_status.side_effect = Exception("HTTP error")
+        mock_post.return_value = mock_resp
 
-def test_save_writes_file(tmp_path, client):
-    data = {"prompt": "Hello", "posts": ["post1", "post2"]}
-    client.save("Hello", data)
+        client = MistralClient(api_key="testkey")
+        with self.assertRaises(Exception) as ctx:
+            client.generate_text("fail prompt")
+        self.assertIn("HTTP error", str(ctx.exception))
 
-    file = tmp_path / "generated_posts.json"
-    # Проверим, что файл создан и в нем содержится корректный JSON
-    saved_file = client.save_dir / "generated_posts.json"
-    assert saved_file.exists()
+    @patch("src.generation.text.mistral_client.MistralClient.generate_text")
+    def test_generate_posts(self, mock_generate_text):
+        mock_generate_text.side_effect = [
+            {"text": "post1"},
+            {"text": "post2"},
+            {"text": "post3"},
+            {"text": "post4"},
+            {"text": "post5"},
+        ]
 
-    content = saved_file.read_text(encoding="utf-8")
-    assert '"prompt": "Hello"' in content
-    assert '"post1"' in content
+        client = MistralClient(api_key="testkey")
+        posts = client.generate_posts("some prompt", n=5)
+
+        self.assertEqual(len(posts), 5)
+        self.assertEqual(posts[0], {"text": "post1"})
+        self.assertEqual(posts[-1], {"text": "post5"})
+        self.assertEqual(mock_generate_text.call_count, 5)
+
+
+if __name__ == "__main__":
+    unittest.main()

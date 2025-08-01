@@ -1,3 +1,5 @@
+from typing import List
+
 import requests
 import os
 
@@ -44,3 +46,11 @@ class MistralClient:
 
         # Return the parsed JSON response
         return resp.json()
+
+    def generate_posts(self, prompt: str, n: int = 5) -> List[str]:
+        """Generate `n` separate post drafts from one prompt."""
+        # simple loop—could be parallelized later
+        drafts = []
+        for _ in range(n):
+            drafts.append(self.generate_text(prompt))
+        return drafts
