@@ -15,6 +15,7 @@ from src.routers.x_router import XRouter
 
 from src.services.auth_service import AuthService
 from src.services.post_planning_service import PostPlanningService
+from src.services.user_service import UserService
 from src.utilities.mistral_client import MistralClient
 
 
@@ -30,12 +31,19 @@ class Container(containers.DeclarativeContainer):
     # Configuration provider: Loads app-wide settings, e.g., from .env vars.
     config = providers.Configuration()
 
+    db_session = providers.Singleton(SessionLocal)
+
     # Auth service: Singleton to share a single instance across requests,
     # avoiding repeated initialization of security-sensitive components.
     auth_service = providers.Singleton(
         AuthService,
         secret_key=config.secret_key,
         algorithm=config.algorithm,
+    )
+
+    user_service = providers.Singleton(
+        UserService,
+        db_session=db_session
     )
 
     # Auth router: Injects auth_service for handling authentication endpoints.
@@ -45,7 +53,7 @@ class Container(containers.DeclarativeContainer):
     post_router = providers.Singleton(PostRouter, auth_service=auth_service)
 
     # User router: Injects auth_service for user management with auth checks.
-    user_router = providers.Singleton(UserRouter, auth_service=auth_service)
+    user_router = providers.Singleton(UserRouter, auth_service=auth_service, user_service=user_service)
 
     # X (Twitter) router: No injected dependencies; handles its own service internally.
     x_router = providers.Singleton(XRouter)
@@ -63,8 +71,6 @@ class Container(containers.DeclarativeContainer):
     )
 
     mistral_router = providers.Singleton(MistralRouter, client=mistral_client)
-
-    db_session = providers.Singleton(SessionLocal)
 
     # Post planning dependencies
     post_planning_repo = providers.Factory(
