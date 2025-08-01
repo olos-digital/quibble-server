@@ -26,7 +26,6 @@ def test_app(mistral_client_mock):
 
 
 def test_generate_text_success(test_app, mistral_client_mock):
-    # Мокаем возвращаемое значение generate_text
     mistral_client_mock.generate_text.return_value = {
         "choices": [{"message": {"content": "generated response"}}]
     }
