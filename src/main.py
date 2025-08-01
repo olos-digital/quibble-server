@@ -14,7 +14,10 @@ def create_app() -> FastAPI:
     default_artifacts = BASE_DIR / "artifacts"
 
     ARTIFACTS_DIR = Path(os.getenv("ARTIFACTS_DIR", str(default_artifacts)))
-
+    LOGS_DIR = BASE_DIR / "logs"
+    LOGS_DIR.mkdir(parents=True, exist_ok=True)
+    log_file = LOGS_DIR / "app.log"
+    log_file.touch(exist_ok=True)
     # Initialize DI container
     container = Container()
     # Load environment variables
