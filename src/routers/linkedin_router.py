@@ -3,11 +3,11 @@ import shutil
 import tempfile
 
 from fastapi import (
-	APIRouter,
-	UploadFile,
-	File,
-	Form,
-	Depends,
+    APIRouter,
+    UploadFile,
+    File,
+    Form,
+    Depends, HTTPException,
 )
 from src.services.linkedin_service import LinkedInApiService  # Service for LinkedIn API interactions.
 from src.utilities.linkedin_helper import get_linkedin_token
@@ -51,35 +51,22 @@ class LinkedInRouter:
             """
             urn = await LinkedInApiService(token).post_text(caption)
             return {"message": "LinkedIn text post created", "post_urn": urn}
-        
+
         @self.router.post("/post-with-image")
         async def post_image(
-            caption: str = Form(...),  
-            image: UploadFile = File(...),
-            token=Depends(get_linkedin_token)  
+                caption: str = Form(...),
+                image: UploadFile = File(...),
+                token=Depends(get_linkedin_token),
         ):
-            """
-            Creates an image post on LinkedIn.
-            
-            This async endpoint handles file uploads by saving to a temporary file,
-            posting via the service, and ensuring cleanup in a finally block. It uses async for efficiency
-            and raising exceptions for errors like invalid tokens or API failures.
-            
-            Args:
-                caption (str): Text caption for the image post.
-                image (UploadFile): Uploaded image file.
-                token: Auth token from dependency.
-            
-            Returns:
-                dict: Success message and post URN.
-            
-            Note: Temp file is always removed to prevent disk clutter; consider async file I/O for very large files.
-            """
             with tempfile.NamedTemporaryFile(delete=False, suffix=".jpg") as tmp:
                 shutil.copyfileobj(image.file, tmp)
                 tmp_path = tmp.name
             try:
-                urn = await LinkedInApiService(token).post_with_image(caption, tmp_path)
+                try:
+                    urn = await LinkedInApiService(token).post_with_image(caption, tmp_path)
+                except Exception as e:
+                    # Normalize unexpected failures into a 500 with a clear message
+                    raise HTTPException(status_code=500, detail="LinkedIn API error") from e
                 return {"message": "LinkedIn image post created", "post_urn": urn}
             finally:
                 os.remove(tmp_path)

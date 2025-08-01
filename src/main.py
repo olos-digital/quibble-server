@@ -20,11 +20,14 @@ def create_app() -> FastAPI:
     log_file.touch(exist_ok=True)
     # Initialize DI container
     container = Container()
-    # Load environment variables
+
     container.config.secret_key.from_env("SECRET_KEY")
     container.config.algorithm.from_env("ALGORITHM")
     container.config.generated_posts_path.from_value(str(ARTIFACTS_DIR / "generated_posts"))
     container.config.mistral_api_key.from_env("MISTRAL_API_KEY")
+	container.config.generated_posts_path.from_value(
+		str(ARTIFACTS_DIR / "generated_posts")
+	)
 
     app = FastAPI()
     app.container = container
@@ -44,14 +47,13 @@ def create_app() -> FastAPI:
     app.include_router(container.user_router().router, prefix="/users", tags=["users"])
     app.include_router(container.auth_router().router, prefix="/auth", tags=["auth"])
     app.include_router(container.post_router().router, prefix="/posts", tags=["posts"])
-    app.include_router(container.linkedin_router().router, prefix="/linkedin", tags=["linkedin"])
-    app.include_router(container.x_router().router, prefix="/x", tags=["x"])
-    app.include_router(container.image_generation_router().router, tags=["image-generation"])
+    app.include_router(container.linkedin_router().router)
+    app.include_router(container.x_router().router)
+
+    app.include_router(container.image_generation_router().router, prefix="/ai", tags=["image-generation"])
     app.include_router(container.post_planning_router().router)
     app.include_router(container.mistral_router().router)
 
     return app
 
-
-# Global app instance
 app = create_app()

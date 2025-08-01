@@ -1,5 +1,11 @@
 from dependency_injector import containers, providers
 from src.services.auth_service import AuthService
+
+from src.database.db_config import SessionLocal
+from src.repositories.planned_post_repo import PlannedPostRepo
+from src.repositories.post_plan_repo import PostPlanRepo
+from src.repositories.post_repo import PostRepository
+
 from src.routers.auth_router import AuthRouter
 from src.routers.post_router import PostRouter
 from src.routers.user_router import UserRouter
@@ -14,6 +20,11 @@ from src.repositories.post_plan_repo import PostPlanRepo
 from src.repositories.planned_post_repo import PlannedPostRepo
 from src.services.post_planning_service import PostPlanningService
 from src.utilities.logger import setup_logger
+from src.generation.text.mistral_client import MistralClient
+from src.generation.images.stab_diff_client import ImageGenerationClient
+from src.services.post_service import PostService
+from src.services.user_service import UserService
+
 
 class Container(containers.DeclarativeContainer):
     """
@@ -22,22 +33,35 @@ class Container(containers.DeclarativeContainer):
 
     config = providers.Configuration()
 
-    # --- Core services ---
+    db_session = providers.Singleton(SessionLocal)
+
+    # Auth service: Singleton to share a single instance across requests,
+    # avoiding repeated initialization of security-sensitive components.
     auth_service = providers.Singleton(
         AuthService,
         secret_key=config.secret_key,
         algorithm=config.algorithm,
     )
 
-    # --- Routers ---
+    post_repo = providers.Singleton(
+        PostRepository,
+        db=db_session,
+    )
+
+    post_service = providers.Singleton(
+        PostService,
+        post_repo=post_repo
+    )
+
+    # Auth router: Injects auth_service for handling authentication endpoints.
     auth_router = providers.Singleton(AuthRouter, auth_service=auth_service)
-    post_router = providers.Singleton(PostRouter, auth_service=auth_service)
+    post_router = providers.Singleton(PostRouter, auth_service=auth_service, post_service=post_service)
     user_router = providers.Singleton(UserRouter, auth_service=auth_service)
     x_router = providers.Singleton(XRouter)
     linkedin_router = providers.Singleton(LinkedInRouter)
-    image_generation_router = providers.Singleton(ImageGenerationRouter)
 
     # --- Mistral integration ---
+
     mistral_client = providers.Singleton(
         MistralClient,
         api_key=config.mistral_api_key
@@ -47,8 +71,16 @@ class Container(containers.DeclarativeContainer):
         mistral_client=mistral_client,
     )
 
-    # --- Database ---
-    db_session = providers.Singleton(SessionLocal)
+    stable_diff_client = providers.Singleton(
+        ImageGenerationClient,
+        model_id=config.stable_diff_model_id,
+        hf_token=config.hf_token
+    )
+
+    image_generation_router = providers.Singleton(
+        ImageGenerationRouter,
+        client=stable_diff_client
+    )
 
     # --- Post planning ---
     post_planning_repo = providers.Factory(
@@ -70,5 +102,4 @@ class Container(containers.DeclarativeContainer):
         service=post_planning_service,
     )
 
-    #logger
     logger = providers.Singleton(setup_logger)
