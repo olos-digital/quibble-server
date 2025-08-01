@@ -1,14 +1,8 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
-from src.utilities.mistral_client import MistralClient
-
-
-class GenerateRequest(BaseModel):
-	prompt: str
-	count: int = 1
-	max_tokens: int = 300
-
+from src.generation.text.mistral_client import MistralClient
+from src.schemas.generation_request import TextGenerationRequest
 
 class MistralRouter:
 	def __init__(self, client: MistralClient):
@@ -18,7 +12,7 @@ class MistralRouter:
 
 	def _attach_routes(self):
 		@self.router.post("/generate")
-		async def generate(req: GenerateRequest):
+		async def generate(req: TextGenerationRequest):
 			if not req.prompt.strip():
 				raise HTTPException(status_code=400, detail="Prompt is required")
 
