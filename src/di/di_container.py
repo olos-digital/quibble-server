@@ -27,7 +27,7 @@ class Container(containers.DeclarativeContainer):
 
 	config = providers.Configuration()
 
-	db_session = providers.Singleton(SessionLocal)
+	db_session = providers.Factory(SessionLocal)
 
 	# Auth service: Singleton to share a single instance across requests,
 	# avoiding repeated initialization of security-sensitive components.
