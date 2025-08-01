@@ -27,7 +27,8 @@ def create_app() -> FastAPI:
     app.container = container
 
     # Add global exception handlers
-    setup_exception_handlers(app)
+    logger = container.logger()
+    setup_exception_handlers(app, logger)
 
     # Mount static files
     app.mount(

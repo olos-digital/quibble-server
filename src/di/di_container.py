@@ -13,6 +13,7 @@ from src.database.db_config import SessionLocal
 from src.repositories.post_plan_repo import PostPlanRepo
 from src.repositories.planned_post_repo import PlannedPostRepo
 from src.services.post_planning_service import PostPlanningService
+from src.utilities.logger import setup_logger
 
 class Container(containers.DeclarativeContainer):
     """
@@ -68,3 +69,6 @@ class Container(containers.DeclarativeContainer):
         PostPlanningRouter,
         service=post_planning_service,
     )
+
+    #logger
+    logger = providers.Singleton(setup_logger)

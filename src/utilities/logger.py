@@ -32,5 +32,3 @@ def setup_logger(name: str = "app_logger", log_file: str = "./logs/app.log"):
     logger.addHandler(console_handler)
 
     return logger
-
-logger = setup_logger()

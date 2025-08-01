@@ -1,9 +1,9 @@
 from fastapi import Request, HTTPException
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
-from .logger import logger
 
-def setup_exception_handlers(app):
+def setup_exception_handlers(app, logger):
+
     @app.exception_handler(HTTPException)
     async def http_exception_handler(request: Request, exc: HTTPException):
         logger.error(f"HTTPException: {exc.detail}", exc_info=True)
