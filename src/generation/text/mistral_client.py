@@ -1,25 +1,51 @@
-from huggingface_hub import InferenceClient
-from pathlib import Path
-import json
-from typing import List, Optional
+from typing import List
+
+import requests
+import os
+
 
 class MistralClient:
-    def __init__(self, hf_token: str, model_id: str, save_dir: Optional[str] = None):
-        self.client = InferenceClient(token=hf_token)
-        self.model_id = model_id
-        if save_dir:
-            self.save_dir = Path(save_dir)
-            self.save_dir.mkdir(parents=True, exist_ok=True)
-        else:
-            self.save_dir = None
+    def __init__(self, api_key: str | None = None):
+        # Initialize the client with the API key, either passed directly or from environment variables
+        self.api_key = api_key or os.getenv("MISTRAL_API_KEY")
+        if not self.api_key:
+            # Raise an error if no API key is provided
+            raise ValueError("❌ MISTRAL_API_KEY not found!")
 
-    def generate_text(self, prompt: str, max_new_tokens: int = 300) -> str:
-        resp = self.client.text_generation(
-            model=self.model_id,
-            inputs=prompt,
-            parameters={"max_new_tokens": max_new_tokens},
-        )
-        return getattr(resp, "generated_text", resp)
+        # Base URL for the Mistral chat completions API
+        self.api_url = "https://api.mistral.ai/v1/chat/completions"
+
+        # Headers required for the API call
+        self.headers = {
+            "Authorization": f"Bearer {self.api_key}",
+            "Content-Type": "application/json"
+        }
+
+    def generate_text(self, prompt: str, model: str = "mistral-medium", max_tokens: int = 300) -> dict:
+        """
+        Sends a request to the Mistral API to generate text based on a prompt.
+
+        :param prompt: The text prompt to send to the model.
+        :param model: The Mistral model to use (default: mistral-medium).
+        :param max_tokens: Maximum number of tokens to generate in the response.
+        :return: The API response as a dictionary.
+        """
+        # Request payload
+        payload = {
+            "model": model,
+            "messages": [{"role": "user", "content": prompt}],
+            "temperature": 0.7,
+            "max_tokens": max_tokens
+        }
+
+        # Make a POST request to the API
+        resp = requests.post(self.api_url, headers=self.headers, json=payload)
+
+        # Raise an HTTPError if the request was unsuccessful
+        resp.raise_for_status()
+
+        # Return the parsed JSON response
+        return resp.json()
 
     def generate_posts(self, prompt: str, n: int = 5) -> List[str]:
         """Generate `n` separate post drafts from one prompt."""
@@ -28,12 +54,3 @@ class MistralClient:
         for _ in range(n):
             drafts.append(self.generate_text(prompt))
         return drafts
-
-    def save(self, prompt: str, result: dict):
-        """Optional: dump to disk if save_dir is set."""
-        if not self.save_dir:
-            return
-        fname = f"post_{prompt[:20].replace(' ', '_')}_{int(Path().stat().st_mtime)}.json"
-        path = self.save_dir / fname
-        with open(path, "w", encoding="utf-8") as f:
-            json.dump(result, f, ensure_ascii=False, indent=2)

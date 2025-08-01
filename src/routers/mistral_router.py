@@ -1,24 +1,35 @@
 from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel
-
 from src.generation.text.mistral_client import MistralClient
-from src.schemas.generation_request import TextGenerationRequest
+from src.schemas.mistral_shemas import PromptRequest  # updated import
+
 
 class MistralRouter:
-	def __init__(self, client: MistralClient):
-		self.client = client
-		self.router = APIRouter(prefix="/mistral", tags=["Mistral"])
-		self._attach_routes()
+    """
+    Router class for Mistral API endpoints.
+    """
 
-	def _attach_routes(self):
-		@self.router.post("/generate")
-		async def generate(req: TextGenerationRequest):
-			if not req.prompt.strip():
-				raise HTTPException(status_code=400, detail="Prompt is required")
+    def __init__(self, mistral_client: MistralClient):
+        self.router = APIRouter(prefix="/mistral", tags=["Mistral"])
+        self.mistral_client = mistral_client
+        self._setup_routes()
 
-			drafts = self.client.generate_posts(req.prompt, n=req.count)
-
-			result = {"prompt": req.prompt, "posts": drafts}
-			self.client.save(req.prompt, result)
-
-			return result
+    def _setup_routes(self):
+        @self.router.post("/generate")
+        async def generate_text(data: PromptRequest):
+            """
+            Generate text using Mistral API.
+            """
+            try:
+                result = self.mistral_client.generate_text(
+                    data.prompt, max_tokens=data.max_tokens
+                )
+                text = result["choices"][0]["message"]["content"]
+                return {
+                    "prompt": data.prompt,
+                    "result": text,
+                    "raw": result
+                }
+            except Exception as e:
+                raise HTTPException(
+                    status_code=502, detail=f"Mistral API error: {str(e)}"
+                )
