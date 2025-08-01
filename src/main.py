@@ -25,9 +25,9 @@ def create_app() -> FastAPI:
     container.config.algorithm.from_env("ALGORITHM")
     container.config.generated_posts_path.from_value(str(ARTIFACTS_DIR / "generated_posts"))
     container.config.mistral_api_key.from_env("MISTRAL_API_KEY")
-	container.config.generated_posts_path.from_value(
-		str(ARTIFACTS_DIR / "generated_posts")
-	)
+    container.config.generated_posts_path.from_value(
+        str(ARTIFACTS_DIR / "generated_posts")
+    )
 
     app = FastAPI()
     app.container = container
