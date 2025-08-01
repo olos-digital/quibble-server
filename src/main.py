@@ -1,11 +1,9 @@
 import os
 from pathlib import Path
-
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 
 from src.di.di_container import Container
-
 
 def create_app() -> FastAPI:
     """
@@ -24,12 +22,9 @@ def create_app() -> FastAPI:
         os.getenv("ARTIFACTS_DIR", str(default_artifacts))
     )
 
-    # loads config from .env vars for security-sensitive settings.
     container = Container()
-
     container.config.secret_key.from_env("SECRET_KEY")
     container.config.algorithm.from_env("ALGORITHM")
-
     container.config.hf_token.from_env("HF_API_TOKEN")
     container.config.mistral_model_id.from_value("mistralai/Mistral-7B-v0.1")
     container.config.generated_posts_path.from_value(
@@ -37,29 +32,18 @@ def create_app() -> FastAPI:
     )
 
     app = FastAPI()
-
     app.container = container
 
-    # serves uploaded images; adjust directory for production paths.
-    app.mount(
-        "/uploads",
-        StaticFiles(directory=str(ARTIFACTS_DIR / "uploads")),
-        name="uploads",
-    )
-
-    # attaches modular endpoint groups with prefixes and tags for OpenAPI docs.
+    app.mount("/uploads", StaticFiles(directory=str(ARTIFACTS_DIR / "uploads")), name="uploads")
     app.include_router(container.user_router().router, prefix="/users", tags=["users"])
     app.include_router(container.auth_router().router, prefix="/auth", tags=["auth"])
     app.include_router(container.post_router().router, prefix="/posts", tags=["posts"])
-    app.include_router(container.linkedin_router().router, prefix="/linkedin", tags=["linkedin"])
-    app.include_router(container.x_router().router, prefix="/x", tags=["x"])
-    app.include_router(container.image_generation_router().router, tags=["image-generation"])
+    app.include_router(container.linkedin_router().router)
+    app.include_router(container.x_router().router)
 
-    app.include_router(container.mistral_router().router)
+    app.include_router(container.image_generation_router().router, prefix="/ai", tags=["image-generation"])
+    app.include_router(container.mistral_router().router, prefix="/ai", tags=["mistral"])
     app.include_router(container.post_planning_router().router)
-
     return app
 
-
-# Global app instance: created via factory for potential reuse or overrides (e.g., in tests).
 app = create_app()
