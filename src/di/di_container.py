@@ -3,6 +3,7 @@ from dependency_injector import containers, providers
 from src.database.db_config import SessionLocal
 from src.repositories.planned_post_repo import PlannedPostRepo
 from src.repositories.post_plan_repo import PostPlanRepo
+from src.repositories.post_repo import PostRepository
 
 from src.routers.auth_router import AuthRouter
 from src.routers.image_generation_router import ImageGenerationRouter
@@ -17,6 +18,8 @@ from src.services.auth_service import AuthService
 from src.services.post_planning_service import PostPlanningService
 from src.generation.text.mistral_client import MistralClient
 from src.generation.images.stab_diff_client import ImageGenerationClient
+from src.services.post_service import PostService
+from src.services.user_service import UserService
 
 
 class Container(containers.DeclarativeContainer):
@@ -31,6 +34,8 @@ class Container(containers.DeclarativeContainer):
     # Configuration provider: Loads app-wide settings, e.g., from .env vars.
     config = providers.Configuration()
 
+    db_session = providers.Singleton(SessionLocal)
+
     # Auth service: Singleton to share a single instance across requests,
     # avoiding repeated initialization of security-sensitive components.
     auth_service = providers.Singleton(
@@ -39,11 +44,21 @@ class Container(containers.DeclarativeContainer):
         algorithm=config.algorithm,
     )
 
+    post_repo = providers.Singleton(
+        PostRepository,
+        db=db_session,
+    )
+
+    post_service = providers.Singleton(
+        PostService,
+        post_repo=post_repo
+    )
+
     # Auth router: Injects auth_service for handling authentication endpoints.
     auth_router = providers.Singleton(AuthRouter, auth_service=auth_service)
 
     # Post router: Injects auth_service for protected post-related operations.
-    post_router = providers.Singleton(PostRouter, auth_service=auth_service)
+    post_router = providers.Singleton(PostRouter, auth_service=auth_service, post_service=post_service)
 
     # User router: Injects auth_service for user management with auth checks.
     user_router = providers.Singleton(UserRouter, auth_service=auth_service)
@@ -72,9 +87,7 @@ class Container(containers.DeclarativeContainer):
     image_generation_router = providers.Singleton(
         ImageGenerationRouter,
         client=stable_diff_client
-    ) 
-
-    db_session = providers.Singleton(SessionLocal)
+    )
 
     # Post planning dependencies
     post_planning_repo = providers.Factory(

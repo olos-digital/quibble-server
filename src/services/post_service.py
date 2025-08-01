@@ -8,8 +8,6 @@ from src.repositories.post_repo import PostRepository
 class PostService:
     """
     Service class for post operations in FastAPI.
-
-    Coordinates higher-level logic; uses PostRepository for DB operations.
     """
 
     def __init__(self, post_repo: PostRepository):
@@ -22,11 +20,7 @@ class PostService:
     def get_post(self, post_id: int) -> Optional[Post]:
         return self.post_repo.get_by_id(post_id)
 
-    def get_posts(
-        self,
-        category: Optional[str] = None,
-        sort_by: str = "likes"
-    ) -> List[Post]:
+    def get_posts(self, category: Optional[str] = None, sort_by: str = "likes") -> List[Post]:
         return self.post_repo.list(category=category, sort_by=sort_by)
 
     def delete_post(self, user: User, post_id: int) -> bool:
@@ -42,3 +36,7 @@ class PostService:
             return None
         post.image_url = image_url
         return self.post_repo.update(post)
+
+    def get_user_posts(self, user: User) -> List[Post]:
+        posts = self.post_repo.list()
+        return [p for p in posts if p.owner_id == user.id]
