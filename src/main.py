@@ -52,9 +52,9 @@ def create_app() -> FastAPI:
 	app.include_router(container.linkedin_router().router)
 	app.include_router(container.x_router().router)
 
-	app.include_router(container.image_generation_router().router, prefix="/ai", tags=["image-generation"])
+	app.include_router(container.flux_router().router, prefix="/ai")
+	app.include_router(container.mistral_router().router,  prefix="/ai")
 	app.include_router(container.post_planning_router().router)
-	app.include_router(container.mistral_router().router)
 
 	return app
 
