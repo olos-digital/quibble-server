@@ -11,5 +11,4 @@ COPY .env .
 EXPOSE 8000
 
 # Run alembic migrations first, then start uvicorn
-CMD ["alembic", "upgrade", "head"] 
 CMD alembic upgrade head && uvicorn src.main:app --host 0.0.0.0 --port 8000 --env-file .env

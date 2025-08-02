@@ -8,7 +8,7 @@ from src.repositories.planned_post_repo import PlannedPostRepo
 from src.repositories.post_plan_repo import PostPlanRepo
 from src.repositories.post_repo import PostRepository
 from src.routers.auth_router import AuthRouter
-from src.routers.flux_image_router import FluxImageRouter
+from src.routers.image_generation_router import FluxImageRouter
 from src.routers.linkedin_router import LinkedInRouter
 from src.routers.mistral_router import MistralRouter
 from src.routers.post_planning_router import PostPlanningRouter
@@ -64,20 +64,6 @@ class Container(containers.DeclarativeContainer):
 	mistral_router = providers.Factory(
 		MistralRouter,
 		mistral_client=mistral_client,
-	)
-
-	# --- Flux image generation ---
-	
-	flux_client = providers.Singleton(
-		FluxImageGenerationClient,
-		hf_token=os.getenv("HF_API_KEY"),
-		provider="hf-inference",  
-		model_id="black-forest-labs/FLUX.1-dev"
-	)
-
-	flux_router = providers.Factory(
-		FluxImageRouter, 
-		client=flux_client
 	)
 
 	# --- Post planning ---
