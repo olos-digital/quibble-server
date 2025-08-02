@@ -1,13 +1,14 @@
+import os
 from dependency_injector import containers, providers
 
 from src.database.db_config import SessionLocal
-from src.generation.images.stab_diff_client import ImageGenerationClient
+from src.generation.images.flux_client import FluxImageGenerationClient
 from src.generation.text.mistral_client import MistralClient
 from src.repositories.planned_post_repo import PlannedPostRepo
 from src.repositories.post_plan_repo import PostPlanRepo
 from src.repositories.post_repo import PostRepository
 from src.routers.auth_router import AuthRouter
-from src.routers.image_generation_router import ImageGenerationRouter
+from src.routers.image_generation_router import FluxImageRouter
 from src.routers.linkedin_router import LinkedInRouter
 from src.routers.mistral_router import MistralRouter
 from src.routers.post_planning_router import PostPlanningRouter
@@ -37,7 +38,7 @@ class Container(containers.DeclarativeContainer):
 		algorithm=config.algorithm,
 	)
 
-	post_repo = providers.Singleton(
+	post_repo = providers.Factory(
 		PostRepository,
 		db=db_session,
 	)
@@ -63,17 +64,6 @@ class Container(containers.DeclarativeContainer):
 	mistral_router = providers.Factory(
 		MistralRouter,
 		mistral_client=mistral_client,
-	)
-
-	stable_diff_client = providers.Singleton(
-		ImageGenerationClient,
-		model_id=config.stable_diff_model_id,
-		hf_token=config.hf_token
-	)
-
-	image_generation_router = providers.Singleton(
-		ImageGenerationRouter,
-		client=stable_diff_client
 	)
 
 	# --- Post planning ---

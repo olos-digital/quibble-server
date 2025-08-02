@@ -1,4 +1,5 @@
 from fastapi import APIRouter
+
 from src.generation.images.stab_diff_client import ImageGenerationClient
 from src.schemas.generation_request import ImageGenerationRequest
 
