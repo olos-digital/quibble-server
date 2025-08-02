@@ -21,6 +21,7 @@ env/
 *.db
 
 # Logs
+log/
 *.log
 
 # Environment variables
