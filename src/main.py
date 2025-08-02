@@ -6,7 +6,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 
 from src.di.di_container import Container
-from src.utilities.exceptions import setup_exception_handlers
+from src.utilities.exception_handlers import setup_exception_handlers
 
 
 def create_app() -> FastAPI:
@@ -65,6 +65,7 @@ def create_app() -> FastAPI:
 	app.include_router(container.linkedin_router().router)
 	app.include_router(container.x_router().router)
 
+	app.include_router(container.image_generation_router().router, prefix="/ai")
 	app.include_router(container.mistral_router().router,  prefix="/ai")
 	app.include_router(container.post_planning_router().router)
 

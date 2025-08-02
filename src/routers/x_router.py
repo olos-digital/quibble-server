@@ -9,9 +9,10 @@ from fastapi import (
     Form,
     HTTPException,
 )
-
 from src.services.x_service import XApiService
+from src.utilities import logger
 
+logger = logger = logger.setup_logger("XRouter logger")
 
 class XRouter:
 	"""
@@ -24,7 +25,6 @@ class XRouter:
 	def __init__(self) -> None:
 		self.router = APIRouter(prefix="/x", tags=["X (Twitter)"])
 		self._x_service = XApiService()
-
 		self._setup_routes()  # Internal method to configure routes.
 
 	def _setup_routes(self) -> None:
@@ -32,7 +32,7 @@ class XRouter:
 		x_service = self._x_service  # local alias for the closures below
 
 		@self.router.post("/tweet")
-		def post_simple_tweet(text: str = Form(...)):
+		def post_simple_tweet(text: str = Form(...)) -> dict:
 			"""
 			Posts a simple text tweet to X (Twitter).
 
@@ -47,19 +47,25 @@ class XRouter:
 				dict: Success message and tweet ID.
 
 			Raises:
-				HTTPException: 400 on any posting error.
+				HTTPException: Returns 400 status with error detail on failure.
 			"""
+			logger.info(f"Received request to post simple tweet: {text[:50]}...")
+
 			try:
 				result = x_service.post_tweet(text)
-				return {"message": "Tweet posted!", "tweet_id": result.get("id")}
+				tweet_id = result.get("id")
+				logger.info(f"Tweet posted successfully with ID: {tweet_id}")
+				return {"message": "Tweet posted!", "tweet_id": tweet_id}
+			
 			except Exception as e:
+				logger.error(f"Failed to post tweet: {e}", exc_info=True)
 				raise HTTPException(status_code=400, detail=str(e))
 
 		@self.router.post("/tweet-with-image")
 		def post_tweet_with_image(
 				text: str = Form(...),  # form field for tweet text.
 				image: UploadFile = File(...)  # image file upload.
-		):
+		) -> dict:
 			"""
 			Posts a tweet with an attached image to X (Twitter).
 
@@ -73,21 +79,41 @@ class XRouter:
 			Returns:
 				dict: Success message and tweet ID.
 
-			Raises:
-				HTTPException: 400 on any posting error.
+            Raises:
+                HTTPException: Returns 400 status with error detail on failure.
 
-			Note: Temp file is always removed to prevent disk clutter.
-			"""
-			with tempfile.NamedTemporaryFile(delete=False, suffix=".jpg") as tmp:
-				shutil.copyfileobj(image.file, tmp)
-				tmp_path = tmp.name
+            Note:
+                The temporary file is always removed after the request handling,
+                even if an exception occurs, preventing disk clutter.
+            """
+			tmp_path = None
+			logger.info(f"Received request to post tweet with image: '{text[:50]}...' Filename: {image.filename}")
+
 			try:
+				# Create a temp file to save the uploaded image
+				with tempfile.NamedTemporaryFile(delete=False, suffix=".jpg") as tmp:
+					shutil.copyfileobj(image.file, tmp)
+					tmp_path = tmp.name
+					logger.debug(f"Saved uploaded image temporarily at {tmp_path}")
+
 				result = x_service.post_tweet_with_image(text, tmp_path)
-				return {"message": "Tweet with image posted!", "tweet_id": result.get("id")}
+				tweet_id = result.get("id")
+				logger.info(f"Tweet with image posted successfully, ID: {tweet_id}")
+				return {"message": "Tweet with image posted!", "tweet_id": tweet_id}
+
 			except Exception as e:
+				logger.error(f"Failed to post tweet with image: {e}", exc_info=True)
 				raise HTTPException(status_code=400, detail=str(e))
+
 			finally:
-				os.remove(tmp_path)  # Ensure temp file cleanup, even on exceptions.
+				# Cleanup: delete temp file safely if it was created
+				if tmp_path:
+					try:
+						os.remove(tmp_path)
+						logger.debug(f"Temporary file {tmp_path} removed successfully.")
+					
+					except Exception as cleanup_error:
+						logger.error(f"Error removing temporary file {tmp_path}: {cleanup_error}", exc_info=True)
 
 
 # Export router: allows inclusion in the main app via app.include_router(x_router).

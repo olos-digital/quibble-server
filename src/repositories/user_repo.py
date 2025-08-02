@@ -1,24 +1,53 @@
 from typing import Optional
-
 from sqlalchemy.orm import Session
-
 from src.database.models.user import User
 
 
 class UserRepository:
-	def __init__(self, session: Session):
-		self.session = session
+    """
+    Repository class responsible for managing User entities in the database.
+    """
 
-	def create(self, user: User) -> User:
-		self.session.add(user)
-		self.session.commit()
-		self.session.refresh(user)
-		return user
+    def __init__(self, session: Session):
+        self.session = session
 
-	def get_by_username(self, username: str) -> Optional[User]:
-		return self.session.query(User).filter(User.username == username).first()
+    def create(self, user: User) -> User:
+        """
+        Adds a new User to the database and commits the transaction.
 
-	def update(self, user: User) -> User:
-		self.session.commit()
-		self.session.refresh(user)
-		return user
+        Args:
+            user (User): The User instance to be added to the database.
+
+        Returns:
+            User: The newly created User object refreshed with the latest state from the database.
+        """
+        self.session.add(user)
+        self.session.commit()
+        self.session.refresh(user)
+        return user
+
+    def get_by_username(self, username: str) -> Optional[User]:
+        """
+        Retrieves a User record by its username.
+
+        Args:
+            username (str): The username string to filter by.
+
+        Returns:
+            Optional[User]: The User object if found, otherwise None.
+        """
+        return self.session.query(User).filter(User.username == username).first()
+
+    def update(self, user: User) -> User:
+        """
+        Commits changes to an existing User record and refreshes the session state.
+
+        Args:
+            user (User): The User instance with updated information.
+
+        Returns:
+            User: The updated User object refreshed with the latest database state.
+        """
+        self.session.commit()
+        self.session.refresh(user)
+        return user
