@@ -16,10 +16,10 @@ logger = logger.setup_logger("PostPlanningService")
 
 class PostPlanningService:
 	"""
-	    Service class responsible for business logic related to post planning.
-	    The class handles creation of post plans, generation of planned posts using AI,
-	    and update of individual planned posts.
-	    """
+	Service class responsible for business logic related to post planning.
+	The class handles creation of post plans, generation of planned posts using AI,
+	and update of individual planned posts.
+	"""
 
 	def __init__(
 			self,
