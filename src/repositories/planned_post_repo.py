@@ -1,4 +1,6 @@
 from typing import List
+
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from src.database.models.post_planning import PlannedPost
@@ -28,3 +30,25 @@ class PlannedPostRepo(GenericRepo[PlannedPost, PlannedPostCreate]):
 			list: A list of planned posts associated with the given plan ID.
 		"""
 		return self.list(plan_id=plan_id)
+
+	def create_with_plan(
+			self,
+			plan_id: int,
+			content: str,
+			scheduled_time=None,
+			ai_suggested: int = 0,
+	) -> PlannedPost:
+		obj = self.model(
+			plan_id=plan_id,
+			content=content,
+			scheduled_time=scheduled_time,
+			ai_suggested=ai_suggested,
+		)
+		try:
+			self.session.add(obj)
+			self.session.commit()
+			self.session.refresh(obj)
+			return obj
+		except SQLAlchemyError:
+			self.session.rollback()
+			raise
