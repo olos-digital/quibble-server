@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Column, Integer, String, Float
 from sqlalchemy.orm import relationship
 
 from .base import Base
@@ -30,3 +30,15 @@ class User(Base):
 
 	# Relationship: Links to posts owned by this user, enabling eager loading in API responses.
 	posts = relationship("Post", back_populates="owner")
+
+	# Stored LinkedIn credentials for OAuth authentication.
+	li_access_token = Column(String, nullable=True)
+
+	# Refresh token to renew the LinkedIn access token.
+	li_refresh_token = Column(String, nullable=True)
+
+	# Expiration time for the LinkedIn access token, stored as a UNIX timestamp.
+	li_expires_at = Column(Float, nullable=True)  # UNIX timestamp
+
+	# LinkedIn URN of the user, used for API calls and identification.
+	li_owner_urn = Column(String, nullable=True)

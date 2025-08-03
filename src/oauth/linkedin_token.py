@@ -3,7 +3,9 @@ import time
 
 import requests
 from pydantic import BaseModel
+from src.utilities import logger
 
+logger = logger.setup_logger("LinkedInToken logger")
 
 class LinkedInToken(BaseModel):
 	"""
@@ -12,12 +14,6 @@ class LinkedInToken(BaseModel):
 	This model structures the token response for type safety and validation
 	in FastAPI applications. It is used to handle access/refresh tokens securely,
 	ensuring consistent data handling during authentication and API calls.
-
-	Attributes:
-		access_token (str): Bearer token for API authentication.
-		expires_at (float): Unix timestamp when the token expires.
-		owner_urn (str): LinkedIn URN of the token owner (e.g., 'urn:li:person:ID').
-		refresh_token (str | None): Optional token for refreshing access (defaults to None).
 	"""
 	access_token: str
 	expires_at: float  # epoch seconds
@@ -30,8 +26,20 @@ CLIENT_ID = os.getenv("LI_CLIENT_ID")
 CLIENT_SECRET = os.getenv("LI_CLIENT_SECRET")
 REDIRECT_URI = os.getenv("LI_REDIRECT_URI")
 TOKEN_URL = "https://www.linkedin.com/oauth/v2/accessToken"
-ME_URL = "https://api.linkedin.com/v2/userinfo"
+ME_URL = "https://api.linkedin.com/v2/userinfo" 
 
+def get_authorize_url(state: str):
+    from urllib.parse import urlencode
+    base = "https://www.linkedin.com/oauth/v2/authorization"
+    params = dict(
+        response_type="code",
+        client_id=CLIENT_ID,
+        redirect_uri=REDIRECT_URI,
+        scope="w_member_social",  # add r_emailaddress,r_liteprofile if needed
+        state=state
+    )
+    logger.debug(f"Generating LinkedIn authorization URL with params: {params}")
+    return f"{base}?{urlencode(params)}"
 
 def exchange_authorization_code(code: str) -> LinkedInToken:
 	"""
@@ -50,6 +58,7 @@ def exchange_authorization_code(code: str) -> LinkedInToken:
 	Raises:
 		requests.HTTPError: If the token exchange or user info request fails.
 	"""
+
 	data = dict(
 		grant_type="authorization_code",
 		code=code,
@@ -61,16 +70,22 @@ def exchange_authorization_code(code: str) -> LinkedInToken:
 	resp.raise_for_status()
 	payload = resp.json()
 
+	logger.info(f"Authorisation payload: {payload['access_token']}")
+
 	# Fetch user URN: required for ownership in LinkedIn API calls
-	me = requests.get(ME_URL,
-					  headers={"Authorization": f"Bearer {payload['access_token']}",
+	me = requests.get(ME_URL,									# HERE IS THE PROBLEM
+					  headers={"Authorization": f"Bearer {payload['access_token']}", 
 							   "X-Restli-Protocol-Version": "2.0.0"},
 					  timeout=10).json()
-	urn = f"urn:li:person:{me['sub']}"
+	logger.info(f"LinkedIn user info: {me}")	
+
+	urn = f"urn:li:person:{me['client_id']}"
+	
+	logger.info(f"LinkedIn user URN: {urn}")
 
 	return LinkedInToken(
 		access_token=payload["access_token"],
-		refresh_token=payload.get("refresh_token"),
+		refresh_token=payload["refresh_token"],
 		expires_at=time.time() + payload["expires_in"],
 		owner_urn=urn,
 	)
@@ -105,5 +120,5 @@ def refresh_access_token(refresh_token: str) -> LinkedInToken:
 		access_token=payload["access_token"],
 		refresh_token=refresh_token,
 		expires_at=time.time() + payload["expires_in"],
-		owner_urn="",  # urn is not refetched, assume it's stored elsewhere.
+		owner_urn="",
 	)

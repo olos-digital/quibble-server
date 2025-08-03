@@ -62,7 +62,10 @@ def create_app() -> FastAPI:
 	app.include_router(container.user_router().router, prefix="/users", tags=["users"])
 	app.include_router(container.auth_router().router, prefix="/auth", tags=["auth"])
 	app.include_router(container.post_router().router, prefix="/posts", tags=["posts"])
-	app.include_router(container.linkedin_router().router)
+	
+	app.include_router(container.linkedin_oauth_router().router)
+	app.include_router(container.linkedin_post_router().router)
+
 	app.include_router(container.x_router().router)
 
 	app.include_router(container.image_generation_router().router, prefix="/ai")

@@ -2,7 +2,7 @@ import io
 
 from fastapi.testclient import TestClient
 
-import src.routers.linkedin_router as linkedin_router_module
+import src.routers.linkedin_post_router as linkedin_router_module
 from src.utilities.linkedin_helper import get_linkedin_token
 
 

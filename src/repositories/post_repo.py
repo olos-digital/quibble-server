@@ -8,8 +8,8 @@ class PostRepository:
     Repository class responsible for handling all database operations related to the Post entity.
     """
 
-    def __init__(self, db: Session):
-        self.db = db
+    def __init__(self, session: Session):
+        self.session = session
 
     def create(self, post: Post) -> Post:
         """
@@ -21,9 +21,9 @@ class PostRepository:
         Returns:
             Post: The created Post instance refreshed with database state (e.g., assigned ID).
         """
-        self.db.add(post)
-        self.db.commit()
-        self.db.refresh(post)
+        self.session.add(post)
+        self.session.commit()
+        self.session.refresh(post)
         return post
 
     def get_by_id(self, post_id: int) -> Optional[Post]:
@@ -36,7 +36,7 @@ class PostRepository:
         Returns:
             Optional[Post]: The matching Post object if found, else None.
         """
-        return self.db.query(Post).filter(Post.id == post_id).first()
+        return self.session.query(Post).filter(Post.id == post_id).first()
 
     def list(
         self,
@@ -53,7 +53,7 @@ class PostRepository:
         Returns:
             List[Post]: A list of Post instances matching the filters and sort order.
         """
-        query = self.db.query(Post)
+        query = self.session.query(Post)
         if category:
             query = query.filter(Post.category == category)
 
@@ -71,8 +71,8 @@ class PostRepository:
         Args:
             post (Post): The Post instance to delete.
         """
-        self.db.delete(post)
-        self.db.commit()
+        self.session.delete(post)
+        self.session.commit()
 
     def get_by_id_and_owner(
         self,
@@ -90,7 +90,7 @@ class PostRepository:
             Optional[Post]: The matching Post object if found and owned by the owner, else None.
         """
         return (
-            self.db.query(Post)
+            self.session.query(Post)
             .filter(Post.id == post_id, Post.owner_id == owner_id)
             .first()
         )
@@ -105,6 +105,6 @@ class PostRepository:
         Returns:
             Post: The updated Post instance refreshed with the latest database state.
         """
-        self.db.commit()
-        self.db.refresh(post)
+        self.session.commit()
+        self.session.refresh(post)
         return post
