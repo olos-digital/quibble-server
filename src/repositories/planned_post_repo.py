@@ -38,6 +38,27 @@ class PlannedPostRepo(GenericRepo[PlannedPost, PlannedPostCreate]):
 			scheduled_time=None,
 			ai_suggested: int = 0,
 	) -> PlannedPost:
+		"""
+		Create a new PlannedPost associated with a given plan, and persist it.
+
+		This method ensures the `plan_id` is set at creation time to satisfy the
+		non-null constraint, and wraps the operation in error handling so that
+		the session is rolled back on failure.
+
+		Args:
+		    plan_id (int): ID of the PostPlan this post belongs to.
+		    content (str): The textual content of the planned post.
+		    scheduled_time (Optional[datetime], optional): When the post is scheduled to go live.
+		        Defaults to None.
+		    ai_suggested (int, optional): Flag indicating if the post was suggested by AI (0 or 1).
+		        Defaults to 0.
+
+		Returns:
+		    PlannedPost: The newly created and persisted PlannedPost instance.
+
+		Raises:
+		    SQLAlchemyError: Propagates any database error after rolling back the session.
+		"""
 		obj = self.model(
 			plan_id=plan_id,
 			content=content,
