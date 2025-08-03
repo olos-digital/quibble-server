@@ -15,11 +15,12 @@ class PostPlan(Base):
 
 
 class PlannedPost(Base):
-	__tablename__ = "planned_posts"
-	id = Column(Integer, primary_key=True, index=True)
-	plan_id = Column(Integer, ForeignKey("post_plans.id"), nullable=False)
-	content = Column(String, nullable=False)
-	scheduled_time = Column(DateTime, nullable=True)
-	ai_suggested = Column(Integer, default=0)
+    __tablename__ = "planned_posts"
+    id = Column(Integer, primary_key=True, index=True)
+    plan_id = Column(Integer, ForeignKey("post_plans.id"), nullable=False)
+    content = Column(String, nullable=False)
+    scheduled_time = Column(DateTime, nullable=True)
+    ai_suggested = Column(Integer, default=0)
+    image_url = Column(String, nullable=True)
 
-	plan = relationship("PostPlan", back_populates="posts")
+    plan = relationship("PostPlan", back_populates="posts")

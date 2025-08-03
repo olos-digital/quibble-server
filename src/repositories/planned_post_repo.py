@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
@@ -38,6 +38,7 @@ class PlannedPostRepo(GenericRepo[PlannedPost, PlannedPostCreate]):
 			content: str,
 			scheduled_time=None,
 			ai_suggested: int = 0,
+			image_url: Optional[str] = None,
 	) -> PlannedPost:
 		"""
 		Create a new PlannedPost associated with a given plan, and persist it.
@@ -47,6 +48,7 @@ class PlannedPostRepo(GenericRepo[PlannedPost, PlannedPostCreate]):
 		the session is rolled back on failure.
 
 		Args:
+		    image_url (str, optional): The URL of the optional image.
 		    plan_id (int): ID of the PostPlan this post belongs to.
 		    content (str): The textual content of the planned post.
 		    scheduled_time (Optional[datetime], optional): When the post is scheduled to go live.
@@ -66,6 +68,8 @@ class PlannedPostRepo(GenericRepo[PlannedPost, PlannedPostCreate]):
 			scheduled_time=scheduled_time,
 			ai_suggested=ai_suggested,
 		)
+		if image_url is not None:
+			setattr(obj, "image_url", image_url)
 		try:
 			self.session.add(obj)
 			self.session.commit()

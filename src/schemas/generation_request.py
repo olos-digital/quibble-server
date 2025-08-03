@@ -25,3 +25,4 @@ class TextGenerationRequest(BaseModel):
 
 class GeneratePostsRequest(BaseModel):
 	count: int = Field(1, ge=1, le=7, description="Number of drafts to generate (1–7)")
+	with_image: bool = False
