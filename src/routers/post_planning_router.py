@@ -3,10 +3,10 @@ from typing import List
 from fastapi import APIRouter, HTTPException
 
 from src.schemas.planning import (
-    PostPlanCreate,
-    PostPlanRead,
-    PlannedPostCreate,
-    PlannedPostRead,
+	PostPlanCreate,
+	PostPlanRead,
+	PlannedPostCreate,
+	PlannedPostRead,
 )
 from src.services.post_planning_service import PostPlanningService
 
@@ -25,6 +25,7 @@ class PostPlanningRouter:
 		"""
 		Attach API endpoint handler functions to the router, including error handling and logging.
 		"""
+
 		@self.router.post("/", response_model=PostPlanRead)
 		def create_plan(data: PostPlanCreate):
 			"""

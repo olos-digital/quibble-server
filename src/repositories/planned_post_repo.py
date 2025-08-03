@@ -16,6 +16,7 @@ class PlannedPostRepo(GenericRepo[PlannedPost, PlannedPostCreate]):
 	Attributes:
 		session (Session): SQLAlchemy session for database operations.
 	"""
+
 	def __init__(self, session: Session):
 		super().__init__(session, PlannedPost)
 

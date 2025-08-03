@@ -4,15 +4,15 @@ from src.generation.text.mistral_client import MistralClient
 from src.repositories.planned_post_repo import PlannedPostRepo
 from src.repositories.post_plan_repo import PostPlanRepo
 from src.schemas.planning import (
-    PostPlanCreate,
-    PostPlanRead,
-    PlannedPostCreate,
-    PlannedPostRead,
+	PostPlanCreate,
+	PostPlanRead,
+	PlannedPostCreate,
+	PlannedPostRead,
 )
-
 from src.utilities import logger
 
 logger = logger.setup_logger("PostPlanningService")
+
 
 class PostPlanningService:
 	"""
@@ -20,6 +20,7 @@ class PostPlanningService:
 	    The class handles creation of post plans, generation of planned posts using AI,
 	    and update of individual planned posts.
 	    """
+
 	def __init__(
 			self,
 			plan_repo: PostPlanRepo,
