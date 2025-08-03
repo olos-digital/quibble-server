@@ -1,8 +1,10 @@
-from typing import List
+from typing import List, Optional
 
+from src.generation.images.stab_diff_client import ImageGenerationClient
 from src.generation.text.mistral_client import MistralClient
 from src.repositories.planned_post_repo import PlannedPostRepo
 from src.repositories.post_plan_repo import PostPlanRepo
+from src.schemas.generation_request import ImageGenerationRequest
 from src.schemas.planning import (
 	PostPlanCreate,
 	PostPlanRead,
@@ -26,10 +28,12 @@ class PostPlanningService:
 			plan_repo: PostPlanRepo,
 			post_repo: PlannedPostRepo,
 			ai_client: MistralClient,
+			image_client: ImageGenerationClient
 	):
 		self.plan_repo = plan_repo
 		self.post_repo = post_repo
 		self.ai_client = ai_client
+		self.image_client = image_client
 		logger.info("PostPlanningService initialized with repositories and AI client.")
 
 	def create_plan(self, data: PostPlanCreate) -> PostPlanRead:
@@ -100,7 +104,7 @@ class PostPlanningService:
 			posts=planned_reads,
 		)
 
-	def generate_posts(self, plan_id: int) -> List[PlannedPostRead]:
+	async def generate_posts(self, plan_id: int, count: int = 1, with_image: bool = False) -> List[PlannedPostRead]:
 		"""
 		Generate AI-suggested post drafts for a given post plan.
 		Steps:
@@ -116,7 +120,7 @@ class PostPlanningService:
 		Raises:
 			ValueError: If the specified post plan does not exist.
 		"""
-		logger.info(f"Generating posts for plan_id={plan_id}")
+		logger.info(f"Generating {count} posts for plan_id={plan_id} (with_image={with_image})")
 
 		plan = self.plan_repo.get(plan_id)
 		if not plan:
@@ -124,43 +128,41 @@ class PostPlanningService:
 			raise ValueError(f"Plan {plan_id} not found")
 
 		prompt = (
-			f"Generate 5 LinkedIn/Instagram post drafts for "
+			f"Generate LinkedIn/Instagram post draft for "
 			f"account {plan.account_id} on {plan.plan_date.date()}"
 		)
 		logger.debug(f"AI prompt constructed: {prompt}")
 
 		try:
-			raw_drafts = self.ai_client.generate_posts(prompt, n=2)
+			raw_drafts = self.ai_client.generate_posts(prompt, n=count)
 			logger.info(f"Received {len(raw_drafts)} drafts from AI client for plan_id={plan_id}")
-
 		except Exception as e:
 			logger.error(f"AI client failed to generate posts for plan_id={plan_id}: {e}", exc_info=True)
 			raise
 
-		drafts: List[str] = []
-		for item in raw_drafts:
-			if isinstance(item, str):
-				drafts.append(item)
-			elif isinstance(item, dict):
-				if text := item.get("content") or item.get("text"):
-					if isinstance(text, str):
-						drafts.append(text)
-						continue
-				drafts.append(str(item))
-			else:
-				drafts.append(str(item))
-
+		drafts: List[str] = [self._unwrap_draft_item(item) for item in raw_drafts]
 		created = []
+
 		for text in drafts:
 			try:
+				image_url: Optional[str] = None
+				if with_image:
+					try:
+						image_prompt = f"Illustration for post: {text[:100]}..."
+						b64 = await self.image_client.generate_image(
+							ImageGenerationRequest(prompt=image_prompt)
+						)
+						image_url = f"data:image/png;base64,{b64}"
+					except Exception as e:
+						logger.warning(f"Image generation for draft failed: {e}")
+						
 				pp = self.post_repo.create_with_plan(
 					plan.id,
 					text,
 					scheduled_time=None,
 					ai_suggested=1,
+					image_url=image_url,
 				)
-				# Associate the planned post with the post plan
-				pp.plan_id = plan.id
 				created.append(pp)
 				logger.debug(f"Created planned post with id={pp.id} linked to plan_id={plan_id}")
 
@@ -173,6 +175,7 @@ class PostPlanningService:
 				content=p.content,
 				scheduled_time=p.scheduled_time,
 				ai_suggested=bool(p.ai_suggested),
+				image_url=getattr(p, "image_url", None),
 			)
 			for p in created
 		]
@@ -224,3 +227,27 @@ class PostPlanningService:
 			scheduled_time=updated.scheduled_time,
 			ai_suggested=bool(updated.ai_suggested),
 		)
+
+	@staticmethod
+	def _unwrap_draft_item(item) -> str:
+		# Extract the actual text from various possible shapes
+		if isinstance(item, str):
+			return item
+		if isinstance(item, dict):
+			# New Mistral-style: choices -> message -> content
+			if choices := item.get("choices"):
+				if isinstance(choices, list) and choices:
+					first = choices[0]
+					if isinstance(first, dict):
+						message = first.get("message")
+						if isinstance(message, dict):
+							content = message.get("content")
+							if isinstance(content, str):
+								return content
+			# fallback to common keys
+			if text := item.get("content") or item.get("text"):
+				if isinstance(text, str):
+					return text
+			# last resort: stringify but make it compact
+			return str(item)
+		return str(item)

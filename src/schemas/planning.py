@@ -7,6 +7,7 @@ from pydantic import BaseModel
 class PlannedPostCreate(BaseModel):
 	content: str
 	scheduled_time: Optional[datetime]
+	image_url: Optional[str] = None
 
 
 class PostPlanCreate(BaseModel):
@@ -17,6 +18,7 @@ class PostPlanCreate(BaseModel):
 class PlannedPostRead(PlannedPostCreate):
 	id: int
 	ai_suggested: bool
+	image_url: Optional[str] = None
 
 
 class PostPlanRead(PostPlanCreate):

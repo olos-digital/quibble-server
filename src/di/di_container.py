@@ -87,15 +87,11 @@ class Container(containers.DeclarativeContainer):
 		PlannedPostRepo,
 		session=db_session,
 	)
-	post_planning_service = providers.Factory(
-		PostPlanningService,
-		plan_repo=post_planning_repo,
-		post_repo=planned_post_repo,
-		ai_client=mistral_client,
-	)
+
 	post_planning_router = providers.Factory(
 		PostPlanningRouter,
-		service=post_planning_service,
+		mistral_client=mistral_client,
+		image_client=stable_diff_client,
 	)
 
 	logger = providers.Singleton(setup_logger)
