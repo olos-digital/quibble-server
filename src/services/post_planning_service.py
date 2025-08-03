@@ -60,6 +60,22 @@ class PostPlanningService:
 			raise
 
 	def get_plan(self, plan_id: int) -> PostPlanRead:
+		"""
+		Retrieve a post plan along with all its associated planned posts.
+
+		This will fetch the plan by ID, validate its existence, then load all
+		planned posts linked to it (via the repository's filtering). The result
+		is normalized into the read model including the list of posts.
+
+		Args:
+		    plan_id (int): Identifier of the post plan to fetch.
+
+		Returns:
+		    PostPlanRead: Representation of the plan including its current posts.
+
+		Raises:
+		    ValueError: If the specified post plan does not exist.
+		"""
 		plan = self.plan_repo.get(plan_id)
 		if not plan:
 			raise ValueError(f"Plan {plan_id} not found")
