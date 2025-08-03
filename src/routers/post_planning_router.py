@@ -8,6 +8,7 @@ from src.schemas.planning import (
 	PlannedPostCreate,
 	PlannedPostRead,
 )
+from src.schemas.generation_request import GeneratePostsRequest
 from src.services.post_planning_service import PostPlanningService
 
 
@@ -62,10 +63,11 @@ class PostPlanningRouter:
 				raise HTTPException(status_code=500, detail="Failed to fetch plan")
 
 		@self.router.post("/{plan_id}/generate", response_model=List[PlannedPostRead])
-		def ai_generate(plan_id: int):
+		def ai_generate(plan_id: int, request: GeneratePostsRequest) -> List[PlannedPostRead]:
 			"""
 			Endpoint to generate planned posts for a given post plan using AI.
 			Args:
+			    request (GeneratePostsRequest): Request payload containing post plan information.
 			    plan_id (int): ID of the post plan for which posts should be generated.
 			Returns:
 			    List[PlannedPostRead]: List of generated planned posts.
@@ -74,7 +76,7 @@ class PostPlanningRouter:
 			    HTTPException 500: If generation fails due to internal errors.
 			"""
 			try:
-				return self.service.generate_posts(plan_id)
+				return self.service.generate_posts(plan_id, request.count)
 			except ValueError as e:
 				raise HTTPException(status_code=404, detail=str(e))
 			except Exception as e:

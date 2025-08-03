@@ -100,7 +100,7 @@ class PostPlanningService:
 			posts=planned_reads,
 		)
 
-	def generate_posts(self, plan_id: int) -> List[PlannedPostRead]:
+	def generate_posts(self, plan_id: int, count: int = 1) -> List[PlannedPostRead]:
 		"""
 		Generate AI-suggested post drafts for a given post plan.
 		Steps:
@@ -124,31 +124,19 @@ class PostPlanningService:
 			raise ValueError(f"Plan {plan_id} not found")
 
 		prompt = (
-			f"Generate 5 LinkedIn/Instagram post drafts for "
+			f"Generate LinkedIn/Instagram post draft for "
 			f"account {plan.account_id} on {plan.plan_date.date()}"
 		)
 		logger.debug(f"AI prompt constructed: {prompt}")
 
 		try:
-			raw_drafts = self.ai_client.generate_posts(prompt, n=2)
+			raw_drafts = self.ai_client.generate_posts(prompt, n=count)
 			logger.info(f"Received {len(raw_drafts)} drafts from AI client for plan_id={plan_id}")
-
 		except Exception as e:
 			logger.error(f"AI client failed to generate posts for plan_id={plan_id}: {e}", exc_info=True)
 			raise
 
-		drafts: List[str] = []
-		for item in raw_drafts:
-			if isinstance(item, str):
-				drafts.append(item)
-			elif isinstance(item, dict):
-				if text := item.get("content") or item.get("text"):
-					if isinstance(text, str):
-						drafts.append(text)
-						continue
-				drafts.append(str(item))
-			else:
-				drafts.append(str(item))
+		drafts: List[str] = [self._unwrap_draft_item(item) for item in raw_drafts]
 
 		created = []
 		for text in drafts:
@@ -224,3 +212,27 @@ class PostPlanningService:
 			scheduled_time=updated.scheduled_time,
 			ai_suggested=bool(updated.ai_suggested),
 		)
+
+	@staticmethod
+	def _unwrap_draft_item(item) -> str:
+		# Extract the actual text from various possible shapes
+		if isinstance(item, str):
+			return item
+		if isinstance(item, dict):
+			# New Mistral-style: choices -> message -> content
+			if choices := item.get("choices"):
+				if isinstance(choices, list) and choices:
+					first = choices[0]
+					if isinstance(first, dict):
+						message = first.get("message")
+						if isinstance(message, dict):
+							content = message.get("content")
+							if isinstance(content, str):
+								return content
+			# fallback to common keys
+			if text := item.get("content") or item.get("text"):
+				if isinstance(text, str):
+					return text
+			# last resort: stringify but make it compact
+			return str(item)
+		return str(item)
