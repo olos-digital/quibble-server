@@ -34,7 +34,6 @@ class LinkedInOAuthRouter:
         ):
             try:
                 token = exchange_authorization_code(code)
-                logger.info(f"LinkedIn token received for user: {token.owner_urn}")
 
                 # Try to find user by LinkedIn URN; if not found, create user
                 user = self.user_repo.get_by_linkedin_urn(token.owner_urn)
@@ -49,7 +48,6 @@ class LinkedInOAuthRouter:
 
                 # Update LinkedIn token info in DB via the service
                 logger.debug(f"Saving LinkedIn token for user ID: {user.id}")
-                logger.info(f"LinkedIn token for user {user.username} - {token}.")
                 self.linkedin_oauth_service.save_token(user.id, token)
                 # Generate your system JWT for this user
                 jwt_token = self.auth_service.create_access_token({"sub": user.username})

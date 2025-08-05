@@ -35,10 +35,10 @@ def get_authorize_url(state: str):
         response_type="code",
         client_id=CLIENT_ID,
         redirect_uri=REDIRECT_URI,
-        scope="w_member_social",  # add r_emailaddress,r_liteprofile if needed
+        scope="openid profile email",
         state=state
     )
-    logger.debug(f"Generating LinkedIn authorization URL with params: {params}")
+    logger.debug(f"Generating LinkedIn OIDC authorization URL with params: {params}")
     return f"{base}?{urlencode(params)}"
 
 def exchange_authorization_code(code: str) -> LinkedInToken:
@@ -70,29 +70,30 @@ def exchange_authorization_code(code: str) -> LinkedInToken:
 	resp.raise_for_status()
 	payload = resp.json()
 
-	logger.info(f"Authorisation payload: {payload['access_token']}")
+	logger.info(f"Authorisation payload: {payload}")
 
 	# Fetch user URN: required for ownership in LinkedIn API calls
-	me = requests.get(ME_URL,									# HERE IS THE PROBLEM
-					  headers={"Authorization": f"Bearer {payload['access_token']}", 
-							   "X-Restli-Protocol-Version": "2.0.0"},
-					  timeout=10).json()
-	logger.info(f"LinkedIn user info: {me}")	
+	refresh_token = payload.get("refresh_token")
 
-	urn = f"urn:li:person:{me['client_id']}"
+    # Fetch user info
+
+	me = requests.get(ME_URL,
+                      headers={"Authorization": f"Bearer {payload['access_token']}"},
+                      timeout=10).json()
+	logger.info(f"User info: {me}")
+
+	owner_urn = f"oidc:linkedin:{me['sub']}"
 	
-	logger.info(f"LinkedIn user URN: {urn}")
-
 	return LinkedInToken(
-		access_token=payload["access_token"],
-		refresh_token=payload["refresh_token"],
+        access_token=payload["access_token"],
+        refresh_token=refresh_token,
 		expires_at=time.time() + payload["expires_in"],
-		owner_urn=urn,
+		owner_urn=owner_urn,
 	)
 
 
-def refresh_access_token(refresh_token: str) -> LinkedInToken:
-	"""
+def refresh_token_if_needed(token: LinkedInToken) -> LinkedInToken:
+    """
 	Refreshes an expired LinkedIn access token using a refresh token.
 
 	This function is used in long-lived sessions or background tasks within FastAPI
@@ -107,18 +108,26 @@ def refresh_access_token(refresh_token: str) -> LinkedInToken:
 	Raises:
 		requests.HTTPError: If the refresh request fails.
 	"""
-	data = dict(
-		grant_type="refresh_token",
-		refresh_token=refresh_token,
-		client_id=CLIENT_ID,
-		client_secret=CLIENT_SECRET,
-	)
-	resp = requests.post(TOKEN_URL, data=data, timeout=20)
-	resp.raise_for_status()
-	payload = resp.json()
-	return LinkedInToken(
-		access_token=payload["access_token"],
-		refresh_token=refresh_token,
-		expires_at=time.time() + payload["expires_in"],
-		owner_urn="",
-	)
+	# Refresh only if refresh token exists and access token expires in less than 60s
+    if token.refresh_token and token.expires_at - time.time() < 60:
+        logger.info("Refreshing LinkedIn access token...")
+        data = {
+            "grant_type": "refresh_token",
+            "refresh_token": token.refresh_token,
+            "client_id": CLIENT_ID,
+            "client_secret": CLIENT_SECRET,
+        }
+        resp = requests.post(TOKEN_URL, data=data)
+        resp.raise_for_status()
+        payload = resp.json()
+        logger.info(f"Refreshed token payload: {payload}")
+
+        # Update token fields
+        token.access_token = payload["access_token"]
+        token.expires_at = time.time() + payload["expires_in"]
+
+        # Some flows may rotate refresh token too
+        if "refresh_token" in payload:
+            token.refresh_token = payload["refresh_token"]
+
+    return token
