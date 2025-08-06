@@ -6,10 +6,10 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 
 from src.di.di_container import Container
-from src.utilities.exception_handlers import setup_exception_handlers
-from src.utilities.auth_handler import register_auth_exception_handler
-from src.utilities.linkedin_handler import register_linkedin_exception_handler
-from src.utilities.value_not_found_handler import register_value_not_found_exception_handler
+from src.exceptionHandlers.exception_handlers import setup_exception_handlers
+from src.exceptionHandlers.auth_handler import register_auth_exception_handler
+from src.exceptionHandlers.linkedin_handler import register_linkedin_exception_handler
+from src.exceptionHandlers.value_not_found_handler import register_value_not_found_exception_handler
 
 
 def create_app() -> FastAPI:
