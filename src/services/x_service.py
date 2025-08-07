@@ -1,8 +1,10 @@
 import os
 import tweepy
 from src.utilities import logger
+from src.exceptions.x_api import XApiException
 
 logger = logger.setup_logger("XApiService logger")
+
 
 class XApiService:
     """
@@ -56,15 +58,14 @@ class XApiService:
             dict: Response data from Twitter API (including tweet ID).
         """
         logger.info(f"Posting simple tweet: '{text[:50]}...'")
-        
         try:
             response = self.client.create_tweet(text=text)
             logger.info("Simple tweet posted successfully.")
             return response.data
-        
+
         except Exception as e:
             logger.error(f"Failed to post simple tweet: {e}", exc_info=True)
-            raise
+            raise XApiException("Failed to post simple tweet") from e
 
     def post_tweet_with_image(self, text: str, image_path: str):
         """
@@ -91,7 +92,7 @@ class XApiService:
             response = self.client.create_tweet(text=text, media_ids=[media.media_id])
             logger.info("Tweet with image posted successfully.")
             return response.data
-        
+
         except Exception as e:
             logger.error(f"Failed to post tweet with image: {e}", exc_info=True)
-            raise
+            raise XApiException("Failed to post tweet with image") from e

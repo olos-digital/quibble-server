@@ -10,6 +10,7 @@ from src.exceptionHandlers.exception_handlers import setup_exception_handlers
 from src.exceptionHandlers.auth_handler import register_auth_exception_handler
 from src.exceptionHandlers.linkedin_handler import register_linkedin_exception_handler
 from src.exceptionHandlers.value_not_found_handler import register_value_not_found_exception_handler
+from src.handlers.x_handler import x_api_exception_handler
 
 
 def create_app() -> FastAPI:
@@ -58,6 +59,7 @@ def create_app() -> FastAPI:
 	register_auth_exception_handler(app, logger)
 	register_linkedin_exception_handler(app, logger)
 	register_value_not_found_exception_handler(app, logger)
+	register_x_exception_handler(app, logger)
 
 	# Mount static files
 	app.mount(
