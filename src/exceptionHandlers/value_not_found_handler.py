@@ -1,6 +1,6 @@
 from fastapi import Request
 from fastapi.responses import JSONResponse
-from exceptions.common import ValueNotFoundException
+from src.exceptions.common_exception import ValueNotFoundException
 
 
 def register_value_not_found_exception_handler(app, logger):

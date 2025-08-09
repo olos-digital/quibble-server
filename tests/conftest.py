@@ -1,3 +1,9 @@
+import os 
+os.environ["X_CONSUMER_KEY"] = "test_consumer_key"
+os.environ["X_CONSUMER_SECRET"] = "test_consumer_secret"
+os.environ["X_ACCESS_TOKEN"] = "test_access_token"
+os.environ["X_ACCESS_TOKEN_SECRET"] = "test_access_token_secret"
+
 import pytest
 from dependency_injector import providers
 from fastapi import FastAPI, HTTPException, Request
@@ -5,15 +11,12 @@ from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-import src.database.models.post  # noqa: F401
-import src.database.models.user  # noqa: F401
+
 from src.database.db_config import get_db
 from src.database.models.base import Base
 from src.di.di_container import Container
 from src.routers.auth_router import AuthRouter
-from src.routers.linkedin_post_router import linkedin_router
 from src.routers.user_router import UserRouter
-from src.utilities.linkedin_helper import get_linkedin_token
 
 # Shared in-memory SQLite (single connection so tables persist)
 TEST_SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"
@@ -72,7 +75,6 @@ def client():
 	user_router = UserRouter(auth_service=DummyAuthService())
 	app.include_router(user_router.router, prefix="/users", tags=["users"])
 
-	app.include_router(linkedin_router)
 
 	# override get_db to ensure isolated short-lived session per request
 	def override_get_db():
@@ -83,6 +85,5 @@ def client():
 			db.close()
 
 	app.dependency_overrides[get_db] = override_get_db
-	app.dependency_overrides[get_linkedin_token] = lambda: "linkedin-token-abc"
 
 	return TestClient(app)

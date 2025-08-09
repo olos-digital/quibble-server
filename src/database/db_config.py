@@ -1,13 +1,17 @@
 import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+from src.utilities import logger
+
+logger = logger.setup_logger("DBConfig logger")
 
 
 # Database engine: Core connection pool for SQLAlchemy; configured with the app's DATABASE_URL.
 # The connect_args handle SQLite-specific threading behavior to prevent concurrency issues
 # in FastAPI's async environment.
 
-DATABASE_URL = os.getenv("DATABASE_URL")
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./test.db")
+logger.info(f"Using database URL: {DATABASE_URL}")
 
 engine = create_engine(
 	DATABASE_URL,

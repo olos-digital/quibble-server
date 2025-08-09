@@ -1,6 +1,6 @@
 from fastapi import Request
 from fastapi.responses import JSONResponse
-from exceptions.linkedin import LinkedInConnectionException
+from src.exceptions.linkedin_exception import LinkedInConnectionException
 
 
 def register_linkedin_exception_handler(app, logger):

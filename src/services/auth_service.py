@@ -12,7 +12,7 @@ from src.database.models.user import User
 from src.repositories.user_repo import UserRepository
 from src.services.user_service import UserService
 from src.utilities import logger
-from src.exceptions.auth import AuthException
+from src.exceptions.auth_exception import AuthException
 
 logger = logger.setup_logger("AuthService logger")
 

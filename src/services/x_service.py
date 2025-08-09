@@ -1,7 +1,7 @@
 import os
 import tweepy
 from src.utilities import logger
-from src.exceptions.x_api import XApiException
+from src.exceptions.x_exception import XApiException
 
 logger = logger.setup_logger("XApiService logger")
 

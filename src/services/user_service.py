@@ -5,7 +5,7 @@ from src.repositories.user_repo import UserRepository
 from src.schemas.user_schemas import UserUpdate
 from src.utilities.password_utils import get_password_hash, verify_password
 from src.utilities import logger
-from src.exceptions.user import UserException
+from src.exceptions.auth_exception import AuthException
 
 logger = logger.setup_logger("UserService")
 
@@ -48,7 +48,8 @@ class UserService:
 
         except Exception as e:
             logger.error(f"Failed to create user '{username}': {e}", exc_info=True)
-            raise UserException("Failed to create user") from e
+            raise Exception("Failed to create user") from e
+        
     def get_user_by_username(self, username: str) -> Optional[User]:
         """
         Retrieve a user by username.
@@ -73,7 +74,7 @@ class UserService:
 
         except Exception as e:
             logger.error(f"Error retrieving user '{username}': {e}", exc_info=True)
-            raise UserException("Failed to retrieve user by username") from e
+            raise Exception("Failed to retrieve user by username") from e
 
     def authenticate_user(self, username: str, password: str) -> Optional[User]:
         """
@@ -105,7 +106,7 @@ class UserService:
 
         except Exception as e:
             logger.error(f"Error during authentication for user '{username}': {e}", exc_info=True)
-            raise UserException("Error during authentication") from e
+            raise AuException("Error during authentication") from e
     def update_user(self, user: User, updates: UserUpdate) -> User:
         """
         Update user fields such as username and/or password.
@@ -139,7 +140,7 @@ class UserService:
 
         except Exception as e:
             logger.error(f"Failed to update user with id {user.id}: {e}", exc_info=True)
-            raise UserException("Failed to update user") from e
+            raise Exception("Failed to update user") from e
 
     def get_user_posts(self, user: User) -> List:
         """
@@ -167,4 +168,4 @@ class UserService:
 
         except Exception as e:
             logger.error(f"Error retrieving posts for user id {user.id}: {e}", exc_info=True)
-            raise UserException("Failed to get user posts") from e
+            raise Exception("Failed to get user posts") from e

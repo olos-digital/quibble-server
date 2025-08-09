@@ -1,6 +1,6 @@
 from fastapi import Request
 from fastapi.responses import JSONResponse
-from exceptions.auth import AuthException
+from src.exceptions.auth_exception import AuthException
 
 
 def register_auth_exception_handler(app, logger):

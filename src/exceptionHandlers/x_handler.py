@@ -1,6 +1,6 @@
 from fastapi import Request
 from fastapi.responses import JSONResponse
-from src.exceptions.x_api import XApiException
+from src.exceptions.x_exception import XApiException
 from src.utilities import logger
 
 logger = logger.setup_logger("XApiExceptionHandler")
