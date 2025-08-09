@@ -12,9 +12,9 @@ from src.database.models.user import User
 from src.repositories.user_repo import UserRepository
 from src.services.user_service import UserService
 from src.utilities import logger
+from src.exceptions.auth import AuthException
 
 logger = logger.setup_logger("AuthService logger")
-
 
 
 class AuthService:
@@ -102,24 +102,20 @@ class AuthService:
             Dict[str, Any]: The payload embedded in the token.
 
         Raises:
-            HTTPException: If token is invalid or signature verification fails.
+            AuthException: If token is invalid or signature verification fails.
         """
         try:
             payload = jwt.decode(token, self.secret_key, algorithms=[self.algorithm])
             logger.debug("JWT token decoded successfully")
             return payload
-        
+
         except JWTError as e:
             logger.warning(f"JWT decode failed: {e}")
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid token",
-                headers={"WWW-Authenticate": "Bearer"},
-            )
+            raise AuthException("Invalid token") from e
 
     def get_current_user(
         self,
-		token: str = Depends(lambda: None),  # in real wiring override with self.oauth2_scheme
+        token: str = Depends(lambda: None),  # in real wiring override with self.oauth2_scheme
         db: Session = Depends(get_db),
     ) -> User:
         """
@@ -133,15 +129,11 @@ class AuthService:
             User: The authenticated User object.
 
         Raises:
-            HTTPException 401: If authentication fails at any step.
+            AuthException: If authentication fails at any step.
         """
         if token is None:
             logger.warning("Attempt to access resource without authentication token")
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Not authenticated",
-                headers={"WWW-Authenticate": "Bearer"},
-            )
+            raise AuthException("Not authenticated")
 
         logger.debug(f"Authenticating token: {token[:10]}...")  # Log truncated token for privacy
 
@@ -150,22 +142,14 @@ class AuthService:
         username: Optional[str] = payload.get("sub")
         if not username:
             logger.warning("Token payload missing subject 'sub' field")
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid token payload",
-                headers={"WWW-Authenticate": "Bearer"},
-            )
+            raise AuthException("Invalid token payload")
 
         user_service = UserService(UserRepository(db))
         user = user_service.get_user_by_username(username)
 
         if not user:
             logger.warning(f"User '{username}' from token not found in database")
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="User not found",
-                headers={"WWW-Authenticate": "Bearer"},
-            )
+            raise AuthException("User not found")
 
         logger.info(f"User '{username}' authenticated successfully")
         return user
