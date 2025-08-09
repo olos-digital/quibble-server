@@ -6,15 +6,18 @@ from src.generation.text.mistral_client import MistralClient
 from src.repositories.planned_post_repo import PlannedPostRepo
 from src.repositories.post_plan_repo import PostPlanRepo
 from src.repositories.post_repo import PostRepository
+from src.repositories.user_repo import UserRepository
 from src.routers.auth_router import AuthRouter
 from src.routers.image_generation_router import ImageGenerationRouter
-from src.routers.linkedin_router import LinkedInRouter
+from src.routers.linkedin_oauth_router import LinkedInOAuthRouter
+from src.routers.linkedin_post_router import LinkedInPostRouter
 from src.routers.mistral_router import MistralRouter
 from src.routers.post_planning_router import PostPlanningRouter
 from src.routers.post_router import PostRouter
 from src.routers.user_router import UserRouter
 from src.routers.x_router import XRouter
 from src.services.auth_service import AuthService
+from src.services.linkedin_oauth_service import LinkedInOAuthService
 from src.services.post_planning_service import PostPlanningService
 from src.services.post_service import PostService
 from src.utilities.logger import setup_logger
@@ -37,9 +40,14 @@ class Container(containers.DeclarativeContainer):
 		algorithm=config.algorithm,
 	)
 
-	post_repo = providers.Singleton(
+	post_repo = providers.Factory(
 		PostRepository,
-		db=db_session,
+		session=db_session,
+	)
+
+	user_repo = providers.Factory(
+		UserRepository,
+		session=db_session,
 	)
 
 	post_service = providers.Singleton(
@@ -52,7 +60,23 @@ class Container(containers.DeclarativeContainer):
 	post_router = providers.Singleton(PostRouter, auth_service=auth_service, post_service=post_service)
 	user_router = providers.Singleton(UserRouter, auth_service=auth_service)
 	x_router = providers.Singleton(XRouter)
-	linkedin_router = providers.Singleton(LinkedInRouter)
+
+	# --- LinkedIn OAuth integration ---
+	linkedin_oauth_service = providers.Factory(LinkedInOAuthService, user_repo=user_repo)
+
+	linkedin_oauth_router = providers.Singleton(
+		LinkedInOAuthRouter,
+		linkedin_oauth_service=linkedin_oauth_service,
+		auth_service=auth_service,
+		user_repo=user_repo
+	)
+
+	linkedin_post_router = providers.Singleton(
+		LinkedInPostRouter,
+		auth_service=auth_service,
+		user_repo=user_repo,
+		linkedin_oauth_service=linkedin_oauth_service,
+	)
 
 	# --- Mistral integration ---
 

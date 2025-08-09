@@ -4,10 +4,10 @@ import time
 import httpx
 import requests
 
-from src.oauth.linkedin_oauth import LinkedInToken
+from src.oauth.linkedin_token import LinkedInToken
 
 
-class LinkedInApiService:
+class LinkedInPostService:
 	"""
 	Service class for interacting with the LinkedIn API in FastAPI.
 

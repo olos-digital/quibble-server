@@ -11,7 +11,7 @@ from src.database.db_config import get_db
 from src.database.models.base import Base
 from src.di.di_container import Container
 from src.routers.auth_router import AuthRouter
-from src.routers.linkedin_router import linkedin_router
+from src.routers.linkedin_post_router import linkedin_router
 from src.routers.user_router import UserRouter
 from src.utilities.linkedin_helper import get_linkedin_token
 
