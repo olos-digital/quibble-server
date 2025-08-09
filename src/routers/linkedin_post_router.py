@@ -1,4 +1,3 @@
-# src/routers/linkedin_post_router.py
 
 import os
 import shutil
@@ -8,8 +7,10 @@ from sqlalchemy.orm import Session
 from src.services.linkedin_post_service import LinkedInPostService
 from src.services.linkedin_oauth_service import LinkedInOAuthService
 from src.services.auth_service import AuthService
-from src.database.db_config import get_db
 from src.repositories.user_repo import UserRepository
+from src.utilities import logger
+
+logger = logger.setup_logger("LinkedInPostRouter logger")
 
 class LinkedInPostRouter:
     def __init__(self, auth_service: AuthService, user_repo: UserRepository, linkedin_oauth_service: LinkedInOAuthService):
@@ -36,14 +37,15 @@ class LinkedInPostRouter:
         async def post_image(
             caption: str = Form(...),
             image: UploadFile = File(...),
-            db: Session = Depends(get_db),
             current_user = Depends(self.auth_service.get_current_user)
         ):
-            token = self.linkedin_oauth_service.get_token(db, current_user.id)
+            logger.info(f"Current User: {current_user}")
+            token = self.linkedin_oauth_service.get_token(current_user.id)
+            logger.info(f"LinkedIn token for user {current_user.username}: {token}")
             if not token:
                 raise HTTPException(403, "No LinkedIn token found. Please authorize first.")
 
-            li_service = LinkedInApiService(token=token)
+            li_service = LinkedInPostService(token=token)
 
             with tempfile.NamedTemporaryFile(delete=False, suffix=".jpg") as tmp:
                 shutil.copyfileobj(image.file, tmp)
