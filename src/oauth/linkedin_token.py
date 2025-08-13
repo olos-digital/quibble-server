@@ -5,6 +5,10 @@ import requests
 from pydantic import BaseModel
 from src.utilities import logger
 
+from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey
+from sqlalchemy.orm import relationship
+from datetime import datetime
+
 logger = logger.setup_logger("LinkedInToken logger")
 
 class LinkedInToken(BaseModel):
@@ -15,10 +19,20 @@ class LinkedInToken(BaseModel):
 	in FastAPI applications. It is used to handle access/refresh tokens securely,
 	ensuring consistent data handling during authentication and API calls.
 	"""
-	access_token: str
-	expires_at: float  # epoch seconds
-	owner_urn: str
-	refresh_token: str | None = None
+	__tablename__ = "linkedin_tokens"
+
+	id = Column(Integer, primary_key=True, autoincrement=True)
+	user_id = Column(Integer, ForeignKey("users.id"), unique=True, index=True)
+
+	access_token = Column(String, nullable=False)   # encrypted
+	refresh_token = Column(String, nullable=True)   # encrypted
+	expires_at = Column(Float, nullable=False)      # epoch timestamp
+	owner_urn = Column(String, nullable=False)
+
+	created_at = Column(DateTime, default=datetime.now)
+	updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
+
+	user = relationship("User", back_populates="linkedin_token")
 
 
 # Environment variables: Loaded for OAuth configuration
@@ -29,17 +43,17 @@ TOKEN_URL = "https://www.linkedin.com/oauth/v2/accessToken"
 ME_URL = "https://api.linkedin.com/v2/userinfo" 
 
 def get_authorize_url(state: str):
-    from urllib.parse import urlencode
-    base = "https://www.linkedin.com/oauth/v2/authorization"
-    params = dict(
-        response_type="code",
-        client_id=CLIENT_ID,
-        redirect_uri=REDIRECT_URI,
-        scope="openid profile email",
-        state=state
-    )
-    logger.debug(f"Generating LinkedIn OIDC authorization URL with params: {params}")
-    return f"{base}?{urlencode(params)}"
+	from urllib.parse import urlencode
+	base = "https://www.linkedin.com/oauth/v2/authorization"
+	params = dict(
+		response_type="code",
+		client_id=CLIENT_ID,
+		redirect_uri=REDIRECT_URI,
+		scope="openid profile email",
+		state=state
+	)
+	logger.debug(f"Generating LinkedIn OIDC authorization URL with params: {params}")
+	return f"{base}?{urlencode(params)}"
 
 def exchange_authorization_code(code: str) -> LinkedInToken:
 	"""
@@ -75,25 +89,26 @@ def exchange_authorization_code(code: str) -> LinkedInToken:
 	# Fetch user URN: required for ownership in LinkedIn API calls
 	refresh_token = payload.get("refresh_token")
 
-    # Fetch user info
-
-	me = requests.get(ME_URL,
-                      headers={"Authorization": f"Bearer {payload['access_token']}"},
-                      timeout=10).json()
+	# Fetch user info
+	me = requests.get(
+		ME_URL,
+		headers={"Authorization": f"Bearer {payload['access_token']}"},
+		timeout=10
+	).json()
 	logger.info(f"User info: {me}")
 
 	owner_urn = f"oidc:linkedin:{me['sub']}"
 	
 	return LinkedInToken(
-        access_token=payload["access_token"],
-        refresh_token=refresh_token,
+		access_token=payload["access_token"],
+		refresh_token=refresh_token,
 		expires_at=time.time() + payload["expires_in"],
 		owner_urn=owner_urn,
 	)
 
 
 def refresh_token_if_needed(token: LinkedInToken) -> LinkedInToken:
-    """
+	"""
 	Refreshes an expired LinkedIn access token using a refresh token.
 
 	This function is used in long-lived sessions or background tasks within FastAPI
@@ -109,25 +124,25 @@ def refresh_token_if_needed(token: LinkedInToken) -> LinkedInToken:
 		requests.HTTPError: If the refresh request fails.
 	"""
 	# Refresh only if refresh token exists and access token expires in less than 60s
-    if token.refresh_token and token.expires_at - time.time() < 60:
-        logger.info("Refreshing LinkedIn access token...")
-        data = {
-            "grant_type": "refresh_token",
-            "refresh_token": token.refresh_token,
-            "client_id": CLIENT_ID,
-            "client_secret": CLIENT_SECRET,
-        }
-        resp = requests.post(TOKEN_URL, data=data)
-        resp.raise_for_status()
-        payload = resp.json()
-        logger.info(f"Refreshed token payload: {payload}")
+	if token.refresh_token and token.expires_at - time.time() < 60:
+		logger.info("Refreshing LinkedIn access token...")
+		data = {
+			"grant_type": "refresh_token",
+			"refresh_token": token.refresh_token,
+			"client_id": CLIENT_ID,
+			"client_secret": CLIENT_SECRET,
+		}
+		resp = requests.post(TOKEN_URL, data=data)
+		resp.raise_for_status()
+		payload = resp.json()
+		logger.info(f"Refreshed token payload: {payload}")
 
-        # Update token fields
-        token.access_token = payload["access_token"]
-        token.expires_at = time.time() + payload["expires_in"]
+		# Update token fields
+		token.access_token = payload["access_token"]
+		token.expires_at = time.time() + payload["expires_in"]
 
-        # Some flows may rotate refresh token too
-        if "refresh_token" in payload:
-            token.refresh_token = payload["refresh_token"]
+		# Some flows may rotate refresh token too
+		if "refresh_token" in payload:
+			token.refresh_token = payload["refresh_token"]
 
-    return token
+	return token

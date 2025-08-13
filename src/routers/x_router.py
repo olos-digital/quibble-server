@@ -9,7 +9,7 @@ from fastapi import (
     Form,
     HTTPException,
 )
-from src.services.x_service import XApiService
+from src.services.x_post_service import XApiService
 from src.utilities import logger
 
 logger = logger = logger.setup_logger("XRouter logger")

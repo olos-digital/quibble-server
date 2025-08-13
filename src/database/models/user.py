@@ -32,13 +32,9 @@ class User(Base):
 	posts = relationship("Post", back_populates="owner")
 
 	# Stored LinkedIn credentials for OAuth authentication.
-	li_access_token = Column(String, nullable=True)
+	linkedin_token = relationship("LiinkedInTokenModel", uselist=False, back_populates="user")
 
-	# Refresh token to renew the LinkedIn access token.
-	li_refresh_token = Column(String, nullable=True)
+	# Stored X credentials for OAuth authentication.
+	x_token = relationship("XTokenModel", uselist=False, back_populates="user")
 
-	# Expiration time for the LinkedIn access token, stored as a UNIX timestamp.
-	li_expires_at = Column(Float, nullable=True)  # UNIX timestamp
 
-	# LinkedIn URN of the user, used for API calls and identification.
-	li_owner_urn = Column(String, nullable=True)
