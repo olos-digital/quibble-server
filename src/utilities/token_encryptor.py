@@ -1,7 +1,8 @@
 import os
 from cryptography.fernet import Fernet
+from src.utilities import logger
 
-key = os.environ["TOKEN_ENCRYPTION_KEY"].encode()
+key = os.getenv("TOKEN_ENCRYPTION_KEY")
 
 fernet = Fernet(key)
 

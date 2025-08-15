@@ -1,4 +1,4 @@
-from src.oauth.x_token import XToken
+from src.database.models.x_token import XToken
 from src.utilities.token_encryptor import decrypt_token, encrypt_token
 
 

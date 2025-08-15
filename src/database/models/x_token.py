@@ -1,7 +1,7 @@
 from sqlalchemy import Column, Integer, String, Float, ForeignKey, DateTime
 from sqlalchemy.orm import relationship
 from datetime import datetime
-from ..database.models.base import Base
+from .base import Base
 
 class XToken(Base):
     __tablename__ = "x_tokens"

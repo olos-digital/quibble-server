@@ -19,20 +19,10 @@ class LinkedInToken(BaseModel):
 	in FastAPI applications. It is used to handle access/refresh tokens securely,
 	ensuring consistent data handling during authentication and API calls.
 	"""
-	__tablename__ = "linkedin_tokens"
-
-	id = Column(Integer, primary_key=True, autoincrement=True)
-	user_id = Column(Integer, ForeignKey("users.id"), unique=True, index=True)
-
-	access_token = Column(String, nullable=False)   # encrypted
-	refresh_token = Column(String, nullable=True)   # encrypted
-	expires_at = Column(Float, nullable=False)      # epoch timestamp
-	owner_urn = Column(String, nullable=False)
-
-	created_at = Column(DateTime, default=datetime.now)
-	updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
-
-	user = relationship("User", back_populates="linkedin_token")
+	access_token: str
+	refresh_token: str | None = None
+	expires_at: float
+	owner_urn: str
 
 
 # Environment variables: Loaded for OAuth configuration

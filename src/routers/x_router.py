@@ -9,7 +9,7 @@ from fastapi import (
     Form,
     HTTPException,
 )
-from src.services.x_post_service import XApiService
+from src.services.x_post_service import XPostService
 from src.utilities import logger
 
 logger = logger = logger.setup_logger("XRouter logger")
@@ -24,7 +24,7 @@ class XRouter:
 
 	def __init__(self) -> None:
 		self.router = APIRouter(prefix="/x", tags=["X (Twitter)"])
-		self._x_service = XApiService()
+		self._x_service = XPostService()
 		self._setup_routes()  # Internal method to configure routes.
 
 	def _setup_routes(self) -> None:
