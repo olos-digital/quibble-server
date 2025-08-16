@@ -1,4 +1,5 @@
-from src.database.models.linkedin_token import LinkedInTokenModel
+from src.database.models.linkedin_token import LinkedInToken as LinkedInTokenModel
+from src.oauth.linkedin_token import LinkedInToken
 from src.utilities.token_encryptor import encrypt_token
 
 class LinkedInTokenRepository:
@@ -24,3 +25,20 @@ class LinkedInTokenRepository:
             self.db.add(token)
         self.db.commit()
         return token
+    
+    def save_token(self, token: LinkedInToken, user_id: str) -> LinkedInTokenModel:
+        """
+        Saves the LinkedIn token to the database.
+
+        Args:
+            token (LinkedInTokenModel): The LinkedIn token object to save.
+        """
+        tokenModel = LinkedInTokenModel(
+            user_id=user_id,
+            access_token=encrypt_token(token.access_token),
+            expires_at=token.expires_at,
+            owner_urn=token.owner_urn
+        )
+        self.db.add(tokenModel)
+        self.db.commit()
+        return tokenModel

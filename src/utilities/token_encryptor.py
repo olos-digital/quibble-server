@@ -1,6 +1,5 @@
 import os
 from cryptography.fernet import Fernet
-from src.utilities import logger
 
 key = os.getenv("TOKEN_ENCRYPTION_KEY")
 

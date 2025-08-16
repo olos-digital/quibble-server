@@ -50,31 +50,6 @@ class UserService:
             logger.error(f"Failed to create user '{username}': {e}", exc_info=True)
             raise Exception("Failed to create user") from e
         
-    def get_user_by_username(self, username: str) -> Optional[User]:
-        """
-        Retrieve a user by username.
-
-        Args:
-            username (str): Username to search for.
-
-        Returns:
-            Optional[User]: User object if found, else None.
-
-        Raises:
-            HTTPException: If the user does not exist, a 404 error is raised.
-        """
-        logger.info(f"Fetching user by username: {username}")
-        try:
-            user = self.user_repo.get_by_username(username)
-            if user is None:
-                logger.warning(f"User with username '{username}' not found")
-            else:
-                logger.info(f"User with username '{username}' retrieved successfully")
-            return user
-
-        except Exception as e:
-            logger.error(f"Error retrieving user '{username}': {e}", exc_info=True)
-            raise Exception("Failed to retrieve user by username") from e
 
     def authenticate_user(self, username: str, password: str) -> Optional[User]:
         """

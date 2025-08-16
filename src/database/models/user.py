@@ -32,7 +32,7 @@ class User(Base):
 	posts = relationship("Post", back_populates="owner")
 
 	# Stored LinkedIn credentials for OAuth authentication.
-	linkedin_token = relationship("LiinkedInTokenModel", uselist=False, back_populates="user")
+	linkedin_token = relationship("LinkedInTokenModel", uselist=False, back_populates="user")
 
 	# Stored X credentials for OAuth authentication.
 	x_token = relationship("XTokenModel", uselist=False, back_populates="user")

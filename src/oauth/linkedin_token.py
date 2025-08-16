@@ -3,11 +3,8 @@ import time
 
 import requests
 from pydantic import BaseModel
-from src.utilities import logger
 
-from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey
-from sqlalchemy.orm import relationship
-from datetime import datetime
+from src.utilities import logger
 
 logger = logger.setup_logger("LinkedInToken logger")
 
@@ -32,6 +29,7 @@ REDIRECT_URI = os.getenv("LI_REDIRECT_URI")
 TOKEN_URL = "https://www.linkedin.com/oauth/v2/accessToken"
 ME_URL = "https://api.linkedin.com/v2/userinfo" 
 
+
 def get_authorize_url(state: str):
 	from urllib.parse import urlencode
 	base = "https://www.linkedin.com/oauth/v2/authorization"
@@ -45,7 +43,9 @@ def get_authorize_url(state: str):
 	logger.debug(f"Generating LinkedIn OIDC authorization URL with params: {params}")
 	return f"{base}?{urlencode(params)}"
 
-def exchange_authorization_code(code: str) -> LinkedInToken:
+def exchange_authorization_code(code: str, 
+								user_id: int,
+								linkedin_token_repo) -> LinkedInToken:
 	"""
 	Exchanges an authorization code for a LinkedIn access token.
 
@@ -88,13 +88,22 @@ def exchange_authorization_code(code: str) -> LinkedInToken:
 	logger.info(f"User info: {me}")
 
 	owner_urn = f"oidc:linkedin:{me['sub']}"
-	
-	return LinkedInToken(
+
+	token_obj = LinkedInToken(
 		access_token=payload["access_token"],
 		refresh_token=refresh_token,
 		expires_at=time.time() + payload["expires_in"],
 		owner_urn=owner_urn,
 	)
+
+	# Store token in DB using the repository
+	try:
+		linkedin_token_repo.save_token(token_obj, user_id=user_id)
+		logger.info("Access token saved to DB.")
+	except Exception as e:
+		logger.error(f"Failed to save access token: {e}")
+
+	return token_obj
 
 
 def refresh_token_if_needed(token: LinkedInToken) -> LinkedInToken:

@@ -1,7 +1,7 @@
 from sqlalchemy import Column, Integer, String, Float, ForeignKey, DateTime
 from sqlalchemy.orm import relationship
 from datetime import datetime
-from ..database.models.base import Base
+from src.database.models.base import Base
 
 class LinkedInToken(Base):
     __tablename__ = "linkedin_tokens"
