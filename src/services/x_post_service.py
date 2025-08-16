@@ -6,7 +6,7 @@ from src.exceptions.x_exception import XApiException
 logger = logger.setup_logger("XApiService logger")
 
 
-class XApiService:
+class XPostService:
     """
     Service class for interacting with the X (Twitter) API in FastAPI.
 

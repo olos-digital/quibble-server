@@ -3,6 +3,7 @@ from dependency_injector import containers, providers
 from src.database.db_config import SessionLocal
 from src.generation.images.stab_diff_client import ImageGenerationClient
 from src.generation.text.mistral_client import MistralClient
+from src.repositories.linkedin_token_repo import LinkedInTokenRepository
 from src.repositories.planned_post_repo import PlannedPostRepo
 from src.repositories.post_plan_repo import PostPlanRepo
 from src.repositories.post_repo import PostRepository
@@ -32,14 +33,6 @@ class Container(containers.DeclarativeContainer):
 
 	db_session = providers.Factory(SessionLocal)
 
-	# Auth service: Singleton to share a single instance across requests,
-	# avoiding repeated initialization of security-sensitive components.
-	auth_service = providers.Singleton(
-		AuthService,
-		secret_key=config.secret_key,
-		algorithm=config.algorithm,
-	)
-
 	post_repo = providers.Factory(
 		PostRepository,
 		session=db_session,
@@ -50,9 +43,24 @@ class Container(containers.DeclarativeContainer):
 		session=db_session,
 	)
 
+	# Auth service: Singleton to share a single instance across requests,
+	# avoiding repeated initialization of security-sensitive components.
+	auth_service = providers.Singleton(
+		AuthService,
+		user_repo=user_repo,
+		secret_key=config.secret_key,
+		algorithm=config.algorithm,
+	)
+
+
 	post_service = providers.Singleton(
 		PostService,
 		post_repo=post_repo
+	)
+
+	linkedin_token_repo = providers.Factory(
+		LinkedInTokenRepository,
+		db_session=db_session,
 	)
 
 	# Auth router: Injects auth_service for handling authentication endpoints.
@@ -68,7 +76,8 @@ class Container(containers.DeclarativeContainer):
 		LinkedInOAuthRouter,
 		linkedin_oauth_service=linkedin_oauth_service,
 		auth_service=auth_service,
-		user_repo=user_repo
+		user_repo=user_repo,
+		linkedin_token_repo=linkedin_token_repo
 	)
 
 	linkedin_post_router = providers.Singleton(

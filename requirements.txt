@@ -8,7 +8,7 @@ python-jose~=3.5.0
 requests~=2.32.4
 indent
 dependency_injector
-huggingface_hub
+cryptography
 transformers
 tweepy~=4.16.0
 python-dotenv~=1.1.1

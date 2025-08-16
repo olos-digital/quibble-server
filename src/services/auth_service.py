@@ -28,9 +28,11 @@ class AuthService:
         self,
         secret_key: str,
         algorithm: str,
+        user_repo: UserRepository,
         access_token_expire_minutes: int = 15,
         token_url: str = "login",
     ):
+        self.user_repo = user_repo
         self.secret_key = secret_key
         self.algorithm = algorithm
         self.access_token_expire_minutes = access_token_expire_minutes
@@ -116,14 +118,12 @@ class AuthService:
     def get_current_user(
         self,
         token: str = Depends(lambda: None),  # in real wiring override with self.oauth2_scheme
-        db: Session = Depends(get_db),
     ) -> User:
         """
         Retrieves the currently authenticated user from the JWT token.
 
         Args:
             token (str): JWT token extracted from the request authorization header.
-            db (Session): Database session dependency for fetching the user.
 
         Returns:
             User: The authenticated User object.
@@ -144,8 +144,7 @@ class AuthService:
             logger.warning("Token payload missing subject 'sub' field")
             raise AuthException("Invalid token payload")
 
-        user_service = UserService(UserRepository(db))
-        user = user_service.get_user_by_username(username)
+        user = self.user_repo.get_by_username(username)
 
         if not user:
             logger.warning(f"User '{username}' from token not found in database")

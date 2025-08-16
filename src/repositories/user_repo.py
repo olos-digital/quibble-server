@@ -1,6 +1,9 @@
 from typing import Optional
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
+
 from src.database.models.user import User
+from src.database.models.linkedin_token import LinkedInToken
+
 
 
 class UserRepository:
@@ -52,7 +55,7 @@ class UserRepository:
     
     def get_by_linkedin_urn(self, linkedin_urn: str) -> Optional[User]:
         """
-		Retrieves a User record by its LinkedIn URN.
+		Retrieves a User record by its LinkedIn URN from the LinkedinToken table.
 
 		Args:
 			linkedin_urn (str): The LinkedIn URN to filter by.
@@ -60,8 +63,13 @@ class UserRepository:
 		Returns:
 			Optional[User]: The User object if found, otherwise None.
 		"""
-        return self.session.query(User).filter(User.li_owner_urn == linkedin_urn).first()		
-        
+        return (
+            self.session.query(User)
+                .join(User.linkedin_token)
+                .filter(LinkedInToken.owner_urn == linkedin_urn)
+                .options(joinedload(User.linkedin_token))
+                .first()
+        )        
 
     def update(self, user: User) -> User:
         """
